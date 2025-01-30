@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './MyFridge.css';
 
@@ -11,18 +11,19 @@ const MyFridge = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedShelf, setSelectedShelf] = useState('shelf1');
+  const navigate = useNavigate();
 
-  // Load ingredients from localStorage on component mount
+  // Load ingredients from sessionStorage on component mount
   useEffect(() => {
-    const savedIngredients = localStorage.getItem('myFridgeIngredients');
+    const savedIngredients = sessionStorage.getItem('myFridgeIngredients');
     if (savedIngredients) {
       setIngredients(JSON.parse(savedIngredients));
     }
   }, []);
 
-  // Save ingredients to localStorage whenever they change
+  // Save ingredients to sessionStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('myFridgeIngredients', JSON.stringify(ingredients));
+    sessionStorage.setItem('myFridgeIngredients', JSON.stringify(ingredients));
   }, [ingredients]);
 
   const handleInputChange = (event) => {
@@ -31,18 +32,28 @@ const MyFridge = () => {
 
   const handleAddIngredient = () => {
     if (inputValue.trim()) {
-      const newIngredient = {
-        id: Date.now(),
-        name: inputValue.trim(),
+      const ingredientsList = inputValue
+        .split(',')
+        .map(ing => ing.trim())
+        .filter(ing => ing.length > 0);
+
+      const newIngredients = ingredientsList.map(name => ({
+        id: Date.now() + Math.random(), // ensure unique IDs even for simultaneous additions
+        name,
         shelf: selectedShelf
-      };
-      setIngredients([...ingredients, newIngredient]);
+      }));
+
+      setIngredients(prev => [...prev, ...newIngredients]);
       setInputValue('');
     }
   };
 
   const handleRemoveIngredient = (id) => {
     setIngredients(ingredients.filter(ing => ing.id !== id));
+  };
+
+  const handleRecipeClick = (recipeId) => {
+    navigate(`/recipe/${recipeId}`);
   };
 
   const handleSubmit = async (event) => {
@@ -129,7 +140,7 @@ const MyFridge = () => {
               type="text"
               value={inputValue}
               onChange={handleInputChange}
-              placeholder="Введите ингредиент"
+              placeholder="Введите ингредиенты через запятую"
               onKeyPress={(e) => e.key === 'Enter' && handleAddIngredient()}
             />
             <button type="button" onClick={handleAddIngredient}>
@@ -155,14 +166,19 @@ const MyFridge = () => {
             <h2>Доступные рецепты</h2>
             <div className="recipe-grid">
               {availableRecipes.map(recipe => (
-                <Link to={`/recipe/${recipe._id}`} key={recipe._id} className="recipe-card">
+                <div 
+                  key={recipe._id} 
+                  className="recipe-card"
+                  onClick={() => handleRecipeClick(recipe._id)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <img src={recipe.imageUrl} alt={recipe.title} />
                   <div className="recipe-info">
                     <h3>{recipe.title}</h3>
                     <p>Время приготовления: {recipe.prepTime} мин</p>
                     <p>Сложность: {recipe.difficulty}</p>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
@@ -174,7 +190,12 @@ const MyFridge = () => {
             <p className="subtitle">Не хватает несколько ингредиентов</p>
             <div className="recipe-grid">
               {limitedRecipes.map(recipe => (
-                <Link to={`/recipe/${recipe._id}`} key={recipe._id} className="recipe-card">
+                <div 
+                  key={recipe._id} 
+                  className="recipe-card"
+                  onClick={() => handleRecipeClick(recipe._id)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <img src={recipe.imageUrl} alt={recipe.title} />
                   <div className="recipe-info">
                     <h3>{recipe.title}</h3>
@@ -186,7 +207,7 @@ const MyFridge = () => {
                       ))}
                     </ul>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>

@@ -39,6 +39,7 @@ function App() {
               <Route path="/my-fridge" element={<MyFridge />} />
               <Route path="/" element={<Home />} />
               <Route path="/recipes" element={<Recipes />} />
+              <Route path="/recipe/:id" element={<RecipeDetail />} />
               <Route path="/recipes/:id" element={<RecipeDetail />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

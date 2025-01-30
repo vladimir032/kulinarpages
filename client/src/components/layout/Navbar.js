@@ -63,7 +63,7 @@ const Navbar = () => {
               component={RouterLink}
               to="/my-fridge"
            >
-              Холодос
+              Холодильник
             </Button>
                 <Button
                   color="inherit"
