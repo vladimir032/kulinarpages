@@ -46,7 +46,7 @@ const Register = () => {
     <Container component="main" maxWidth="xs">
       <Paper elevation={6} sx={{ mt: 8, p: 4 }}>
         <Typography component="h1" variant="h5" align="center">
-          Register
+          Регистрация
         </Typography>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
           {error && (
@@ -59,7 +59,7 @@ const Register = () => {
             required
             fullWidth
             id="username"
-            label="Username"
+            label="Имя пользвателя"
             name="username"
             autoComplete="username"
             autoFocus
@@ -71,7 +71,7 @@ const Register = () => {
             required
             fullWidth
             id="email"
-            label="Email Address"
+            label="Email"
             name="email"
             autoComplete="email"
             value={email}
@@ -82,7 +82,7 @@ const Register = () => {
             required
             fullWidth
             name="password"
-            label="Password"
+            label="Пароль"
             type="password"
             id="password"
             autoComplete="new-password"
@@ -94,7 +94,7 @@ const Register = () => {
             required
             fullWidth
             name="password2"
-            label="Confirm Password"
+            label="Подтвердите пароль"
             type="password"
             id="password2"
             value={password2}
@@ -106,8 +106,9 @@ const Register = () => {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
           >
-            Register
+            Зарегистрироваться
           </Button>
+          <h3 span style={{ textAlign: 'center'}}>Уже есть аккаунт?  <a span style={{textDecoration: 'none', color: '#ff5722'}}href="/login">Войти</a></h3>
         </Box>
       </Paper>
     </Container>

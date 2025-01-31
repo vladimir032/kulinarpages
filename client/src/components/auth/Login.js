@@ -40,7 +40,7 @@ const Login = () => {
     <Container component="main" maxWidth="xs">
       <Paper elevation={6} sx={{ mt: 8, p: 4 }}>
         <Typography component="h1" variant="h5" align="center">
-          Login
+          Вход
         </Typography>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
           {error && (
@@ -53,7 +53,7 @@ const Login = () => {
             required
             fullWidth
             id="email"
-            label="Email Address"
+            label="Ваш Email"
             name="email"
             autoComplete="email"
             autoFocus
@@ -65,7 +65,7 @@ const Login = () => {
             required
             fullWidth
             name="password"
-            label="Password"
+            label="Ваш пароль"
             type="password"
             id="password"
             autoComplete="current-password"
@@ -78,8 +78,9 @@ const Login = () => {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
           >
-            Sign In
+            Войти
           </Button>
+          <h3 span style={{ textAlign: 'center'}}>Нет аккаунта?  <a span style={{textDecoration: 'none', color: '#ff5722'}}href="/register">Зарегистрироваться</a></h3>
         </Box>
       </Paper>
     </Container>

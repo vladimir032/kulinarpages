@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/recipes', require('./routes/Recipes'));
+app.use('/api/recipes', require('./routes/recipes'));
 app.use('/api/users', require('./routes/Users'));
 
 
