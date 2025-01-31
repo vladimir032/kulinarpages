@@ -20,6 +20,7 @@ import {
   FormGroup,
   FormControlLabel,
   Switch,
+  Skeleton,
 } from '@mui/material';
 import axios from 'axios';
 
@@ -28,6 +29,7 @@ const difficulties = ['Легко', 'Средне', 'Сложно'];
 
 const Recipes = () => {
   const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     category: '',
@@ -43,13 +45,29 @@ const Recipes = () => {
 
   const fetchRecipes = async () => {
     try {
+      setLoading(true);
       const res = await axios.get('/api/recipes');
       setRecipes(res.data);
     } catch (err) {
       console.error('Error fetching recipes:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const RecipeSkeleton = () => (
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Skeleton variant="rectangular" height={200} animation="wave" />
+      <CardContent>
+        <Skeleton variant="text" height={32} width="80%" animation="wave" />
+        <Skeleton variant="text" height={20} width="60%" animation="wave" />
+        <Box sx={{ mt: 2 }}>
+          <Skeleton variant="text" height={24} width="40%" animation="wave" />
+          <Skeleton variant="text" height={24} width="70%" animation="wave" />
+        </Box>
+      </CardContent>
+    </Card>
+  );
   const handlePrepTimeChange = (event, newValue) => {
     setFilters(prev => ({ ...prev, prepTime: newValue }));
   };
@@ -103,167 +121,242 @@ const Recipes = () => {
     });
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Grid container spacing={3}>
-        {/* Filters Sidebar */}
-        <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Фильтры
-            </Typography>
-            
-            {/* Category Filter */}
-            <FormControl fullWidth sx={{ mb: 3 }}>
-              <InputLabel>Категория</InputLabel>
-              <Select
-                value={filters.category}
-                label="Category"
-                onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
-              >
-                <MenuItem value="">Все</MenuItem>
-                {categories.map(category => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Difficulty Filter */}
-            <FormControl fullWidth sx={{ mb: 3 }}>
-              <InputLabel>Сложность</InputLabel>
-              <Select
-                value={filters.difficulty}
-                label="Difficulty"
-                onChange={(e) => setFilters(prev => ({ ...prev, difficulty: e.target.value }))}
-              >
-                <MenuItem value="">Все</MenuItem>
-                {difficulties.map(difficulty => (
-                  <MenuItem key={difficulty} value={difficulty}>
-                    {difficulty}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Prep Time Filter */}
-            <Box sx={{ mb: 3 }}>
-              <Typography gutterBottom>Время приготовления (минут)</Typography>
-              <Slider
-                value={filters.prepTime}
-                onChange={handlePrepTimeChange}
-                valueLabelDisplay="auto"
-                min={1}
-                max={500}
-              />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">
-                  {filters.prepTime[0]} мин
+      <Container maxWidth="xl" sx={{ mt: 6, mb: 6 }}> {/* Увеличена ширина контейнера */}
+        <Grid container spacing={4}> {/* Увеличен spacing между блоками */}
+          {/* Filters Sidebar */}
+          <Grid item xs={12} md={3}>
+            <Paper sx={{ p: 3, borderRadius: 3 }}> {/* Увеличен padding и скругление */}
+              <Typography variant="h5" gutterBottom sx={{ mb: 3 }}> {/* Увеличен размер заголовка */}
+                Фильтры
+              </Typography>
+              
+              {/* Category Filter */}
+              <FormControl fullWidth sx={{ mb: 4 }}> {/* Увеличен отступ */}
+                <InputLabel>Категория</InputLabel>
+                <Select
+                  value={filters.category}
+                  label="Category"
+                  size="medium" 
+                  onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+                >
+                  <MenuItem value="">Все</MenuItem>
+                  {categories.map(category => (
+                    <MenuItem key={category} value={category}>
+                      {category}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+    
+              {/* Difficulty Filter */}
+              <FormControl fullWidth sx={{ mb: 4 }}>
+                <InputLabel>Сложность</InputLabel>
+                <Select
+                  value={filters.difficulty}
+                  label="Difficulty"
+                  size="medium"
+                  onChange={(e) => setFilters(prev => ({ ...prev, difficulty: e.target.value }))}
+                >
+                  <MenuItem value="">Все</MenuItem>
+                  {difficulties.map(difficulty => (
+                    <MenuItem key={difficulty} value={difficulty}>
+                      {difficulty}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+    
+              {/* Prep Time Filter */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="subtitle1" gutterBottom> 
+                  Время приготовления (минут)
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {filters.prepTime[1]} мин
-                </Typography>
+                <Slider
+                  value={filters.prepTime}
+                  onChange={handlePrepTimeChange}
+                  valueLabelDisplay="auto"
+                  min={1}
+                  max={500}
+                  sx={{ color: 'primary.main' }} 
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                  <Typography variant="body1" color="text.secondary"> 
+                    {filters.prepTime[0]} мин
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    {filters.prepTime[1]} мин
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-
-            {/* Sorting Options */}
-            <FormGroup>
-            <FormControlLabel
-                control={
-                  <Switch
-                    checked={filters.sortByCalories !== null}
-                    onChange={() => handleSortToggle('sortByCalories')}
-                  />
+    
+              {/* Sorting Options */}
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="medium" 
+                      checked={filters.sortByCalories !== null}
+                      onChange={() => handleSortToggle('sortByCalories')}
+                    />
+                  }
+                  label={
+                    <Typography variant="body1"> {/* Увеличен размер текста */}
+                      Сортировать по калориям {filters.sortByCalories && 
+                        `(${filters.sortByCalories === 'desc' ? '▼' : '▲'})`}
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="medium"
+                      checked={filters.sortByIngredients !== null}
+                      onChange={() => handleSortToggle('sortByIngredients')}
+                    />
+                  }
+                  label={
+                    <Typography variant="body1">
+                      Сортировать по ингредиентам {filters.sortByIngredients && 
+                        `(${filters.sortByIngredients === 'desc' ? '▼' : '▲'})`}
+                    </Typography>
+                  }
+                />
+              </FormGroup>
+            </Paper>
+          </Grid>
+    
+          {/* Main Content */}
+          <Grid item xs={12} md={9}>
+            {/* Search Bar */}
+            <TextField
+              fullWidth
+              label="Найти рецепт"
+              variant="outlined"
+              size="medium"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{ 
+                mb: 4,
+                '& .MuiOutlinedInput-root': {
+                  height: 56,
+                  fontSize: '1.1rem'
                 }
-                label={`Сортировать по калориям ${filters.sortByCalories === 'desc' ? '(От большего к меньшему)' : filters.sortByCalories === 'asc' ? '(От меньшего к большему)' : ''}`}
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={filters.sortByIngredients !== null}
-                    onChange={() => handleSortToggle('sortByIngredients')}
-                  />
-                }
-                label={`Сортировать по количеству ингредиентов ${filters.sortByIngredients === 'desc' ? '(От большего к меньшему)' : filters.sortByIngredients === 'asc' ? '(От меньшего к большему)' : ''}`}
-              />
-            </FormGroup>
-          </Paper>
-        </Grid>
-
-        {/* Main Content */}
-        <Grid item xs={12} md={9}>
-          {/* Search Bar */}
-          <TextField
-            fullWidth
-            label="Найти рецепт"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ mb: 3 }}
-          />
-
-          {/* Recipes Grid */}
-          <Grid container spacing={3}>
-            {filteredAndSortedRecipes.map((recipe) => (
-              <Grid item key={recipe._id} xs={12} sm={6} lg={4}>
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <CardMedia
-                    component="img"
-                    sx={{ height: 200 }}
-                    image={recipe.imageUrl}
-                    alt={recipe.title}
-                  />
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography gutterBottom variant="h5" component="h2">
-                      {recipe.title}
-                    </Typography>
-                    <Box sx={{ mb: 2 }}>
-                      <Chip
-                        label={recipe.difficulty}
-                        color={
-                          recipe.difficulty === 'Легко'
-                            ? 'success'
-                            : recipe.difficulty === 'Средне'
-                            ? 'warning'
-                            : 'error'
-                        }
-                        size="small"
-                        sx={{ mr: 1 }}
+              }}
+            />
+    
+            {/* Recipes Grid */}
+            <Grid container spacing={4}> 
+              {loading ? (
+                Array.from(new Array(6)).map((_, index) => (
+                  <Grid item key={index} xs={12} sm={6} lg={4}>
+                    <RecipeSkeleton />
+                  </Grid>
+                ))
+              ) : (
+                filteredAndSortedRecipes.map((recipe) => (
+                  <Grid item key={recipe._id} xs={12} sm={6} lg={4}>
+                    <Card sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      borderRadius: 3,
+                      boxShadow: 3
+                    }}>
+                      <CardMedia
+                        component="img"
+                        sx={{ 
+                          height: 300, 
+                          objectFit: 'cover',
+                          borderTopLeftRadius: 8,
+                          borderTopRightRadius: 8
+                        }}
+                        image={recipe.imageUrl}
+                        alt={recipe.title}
                       />
-                      <Chip
-                        label={`${recipe.calories} ккал`}
-                        variant="outlined"
-                        size="small"
-                        sx={{ mr: 1 }}
-                      />
-                      <Chip
-                        label={`${recipe.prepTime} мин`}
-                        variant="outlined"
-                        size="small"
-                      />
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {recipe.ingredients.length} {getIngredientWord(recipe.ingredients.length)}
-                    </Typography>
-                    <Typography sx={{ mb: 2 }}>
-                      {recipe.description.substring(0, 100)}...
-                    </Typography>
-                    <Button
-                      component={RouterLink}
-                      to={`/recipes/${recipe._id}`}
-                      variant="contained"
-                      fullWidth
-                    >
-                      Посмотреть
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
+                      <CardContent sx={{ 
+                        flexGrow: 1, 
+                        p: 3,
+                        '&:last-child': { pb: 3 }
+                      }}>
+                        <Typography 
+                          gutterBottom 
+                          variant="h4" 
+                          component="h2"
+                          sx={{ 
+                            fontSize: '1.6rem',
+                            fontWeight: 600,
+                            lineHeight: 1.2,
+                            mb: 2
+                          }}
+                        >
+                          {recipe.title}
+                        </Typography>
+                        <Box sx={{ 
+                          mb: 3,
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: 1
+                        }}>
+                          <Chip
+                            label={recipe.difficulty}
+                            color={
+                              recipe.difficulty === 'Легко' ? 'success' :
+                              recipe.difficulty === 'Средне' ? 'warning' : 'error'
+                            }
+                            size="medium"
+                          />
+                          <Chip
+                            label={`${recipe.calories} ккал`}
+                            variant="outlined"
+                            size="medium"
+                          />
+                          <Chip
+                            label={`${recipe.prepTime} мин`}
+                            variant="outlined"
+                            size="medium"
+                          />
+                        </Box>
+                        <Typography 
+                          variant="body1" 
+                          color="text.secondary" 
+                          sx={{ mb: 2 }}
+                        >
+                          {recipe.ingredients.length} {getIngredientWord(recipe.ingredients.length)}
+                        </Typography>
+                        <Typography 
+                          variant="body1"
+                          sx={{ 
+                            mb: 3,
+                            lineHeight: 1.5,
+                            color: 'text.secondary'
+                          }}
+                        >
+                          {recipe.description.substring(0, 120)}...
+                        </Typography>
+                        <Button
+                          component={RouterLink}
+                          to={`/recipes/${recipe._id}`}
+                          variant="contained"
+                          fullWidth
+                          size="large" 
+                          sx={{
+                            py: 1.5,
+                            fontSize: '1.1rem',
+                            fontWeight: 500
+                          }}
+                        >
+                          Посмотреть
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))
+              )}
+            </Grid>
           </Grid>
         </Grid>
-      </Grid>
-    </Container>
-  );
+      </Container>
+    );
 };
 
 export default Recipes;
