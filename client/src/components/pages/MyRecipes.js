@@ -84,11 +84,8 @@ const MyRecipes = () => {
                     <Chip
                       label={recipe.difficulty}
                       color={
-                        recipe.difficulty === 'Easy'
-                          ? 'success'
-                          : recipe.difficulty === 'Medium'
-                          ? 'warning'
-                          : 'error'
+                              recipe.difficulty === 'Легко' ? 'success' :
+                              recipe.difficulty === 'Средне' ? 'warning' : 'error'
                       }
                       size="small"
                       sx={{ mr: 1 }}
