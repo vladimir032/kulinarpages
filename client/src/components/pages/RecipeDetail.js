@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Container,
@@ -27,11 +27,7 @@ const RecipeDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchRecipe();
-  }, [id]);
-
-  const fetchRecipe = async () => {
+  const fetchRecipe = useCallback(async () => {
     try {
       const res = await axios.get(`/api/recipes/${id}`);
       setRecipe(res.data);
@@ -41,8 +37,12 @@ const RecipeDetail = () => {
     } catch (err) {
       console.error('Error fetching recipe:', err);
     }
-  };
-
+  }, [id, user]);
+  
+  useEffect(() => {
+    fetchRecipe();
+  }, [fetchRecipe]);
+  
   const handleSaveRecipe = async () => {
     if (!user) return;
     try {
