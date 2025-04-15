@@ -20,7 +20,8 @@ router.post('/register', async (req, res) => {
     user = new User({
       username,
       email,
-      password
+      password,
+      role: 'user' // default role
     });
 
     const salt = await bcrypt.genSalt(10);
@@ -59,6 +60,14 @@ router.post('/login', async (req, res) => {
     let user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({ msg: 'В связи с нарушением правил платформы, вы были заблокированы.' });
+    }
+
+    if (user.restrictionUntil && user.restrictionUntil > new Date()) {
+      return res.status(403).json({ msg: `Ваша учетная запись была ограничена до ${user.restrictionUntil.toLocaleDateString()}.` });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);

@@ -15,6 +15,8 @@ import RecipeDetail from './components/pages/RecipeDetail';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import PrivateRoute from './components/routing/PrivateRoute';
+import AdminRoute from './components/routing/AdminRoute';
+import AdminPanel from './components/pages/AdminPanel';
 
 const theme = createTheme({
   palette: {
@@ -49,6 +51,14 @@ function App() {
                   <PrivateRoute>
                     <MyRecipes />
                   </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminPanel />
+                  </AdminRoute>
                 }
               />
             </Routes>

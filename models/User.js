@@ -23,6 +23,19 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Recipe'
   }],
+  isBlocked: {
+    type: Boolean,
+    default: false
+  },
+  restrictionUntil: {
+    type: Date,
+    default: null
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
   createdAt: {
     type: Date,
     default: Date.now

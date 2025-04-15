@@ -4,6 +4,21 @@ const auth = require('../middleware/auth');
 const Recipe = require('../models/Recipe');
 const User = require('../models/User');
 
+// Middleware to check if user is admin
+const isAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (user && user.role === 'admin') {
+      next();
+    } else {
+      return res.status(403).json({ msg: 'Access denied: Admins only' });
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
 // @route   GET api/recipes
 // @desc    Get all recipes
 // @access  Public
@@ -53,8 +68,8 @@ router.get('/:id', async (req, res) => {
 
 // @route   POST api/recipes
 // @desc    Create a recipe
-// @access  Private
-router.post('/', auth, async (req, res) => {
+// @access  Private (admin only)
+router.post('/', auth, isAdmin, async (req, res) => {
   try {
     const newRecipe = new Recipe({
       title: req.body.title,
@@ -79,7 +94,7 @@ router.post('/', auth, async (req, res) => {
 
 // @route   PUT api/recipes/:id
 // @desc    Update a recipe
-// @access  Private
+// @access  Private (admin or author)
 router.put('/:id', auth, async (req, res) => {
   try {
     let recipe = await Recipe.findById(req.params.id);
@@ -87,8 +102,10 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(404).json({ msg: 'Recipe not found' });
     }
 
-    // Make sure user owns recipe
-    if (recipe.author.toString() !== req.user.id) {
+    const user = await User.findById(req.user.id);
+
+    // Allow if admin or author
+    if (recipe.author.toString() !== req.user.id && user.role !== 'admin') {
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
@@ -107,7 +124,7 @@ router.put('/:id', auth, async (req, res) => {
 
 // @route   DELETE api/recipes/:id
 // @desc    Delete a recipe
-// @access  Private
+// @access  Private (admin or author)
 router.delete('/:id', auth, async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id);
@@ -115,8 +132,10 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(404).json({ msg: 'Recipe not found' });
     }
 
-    // Make sure user owns recipe
-    if (recipe.author.toString() !== req.user.id) {
+    const user = await User.findById(req.user.id);
+
+    // Allow if admin or author
+    if (recipe.author.toString() !== req.user.id && user.role !== 'admin') {
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
@@ -182,6 +201,94 @@ router.post('/find', async (req, res) => {
     });
 
     res.json(results);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET api/admin/statistics
+// @desc    Get site statistics
+// @access  Private (admin only)
+router.get('/admin/statistics', auth, isAdmin, async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalRecipes = await Recipe.countDocuments();
+    const totalSavedRecipes = await User.aggregate([
+      { $unwind: "$savedRecipes" },
+      { $group: { _id: null, count: { $sum: 1 } } }
+    ]);
+
+    res.json({
+      totalUsers,
+      totalRecipes,
+      totalSavedRecipes: totalSavedRecipes.length > 0 ? totalSavedRecipes[0].count : 0
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET api/admin/users
+// @desc    Get all users
+// @access  Private (admin only)
+router.get('/admin/users', auth, isAdmin, async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   PUT api/admin/users/:id/block
+// @desc    Block a user
+// @access  Private (admin only)
+router.put('/admin/users/:id/block', auth, isAdmin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+
+    user.isBlocked = true;
+    await user.save();
+    res.json({ msg: 'User blocked' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   PUT api/admin/users/:id/unblock
+// @desc    Unblock a user
+// @access  Private (admin only)
+router.put('/admin/users/:id/unblock', auth, isAdmin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+
+    user.isBlocked = false;
+    await user.save();
+    res.json({ msg: 'User unblocked' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   PUT api/admin/users/:id/restrict
+// @desc    Restrict a user until a certain date
+// @access  Private (admin only)
+router.put('/admin/users/:id/restrict', auth, isAdmin, async (req, res) => {
+  try {
+    const { restrictionUntil } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+
+    user.restrictionUntil = new Date(restrictionUntil);
+    await user.save();
+    res.json({ msg: 'User restricted', restrictionUntil: user.restrictionUntil });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

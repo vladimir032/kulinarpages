@@ -11,7 +11,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
 
   return (
     <AppBar position="static">
@@ -59,12 +59,21 @@ const Navbar = () => {
                   Мои рецепты
                 </Button>
                 <Button
-              color="inherit"
-              component={RouterLink}
-              to="/my-fridge"
-           >
-              Холодильник
-            </Button>
+                  color="inherit"
+                  component={RouterLink}
+                  to="/my-fridge"
+                >
+                  Холодильник
+                </Button>
+                {isAdmin() && (
+                  <Button
+                    color="inherit"
+                    component={RouterLink}
+                    to="/admin"
+                  >
+                    Админ-панель
+                  </Button>
+                )}
                 <Button
                   color="inherit"
                   onClick={logout}
