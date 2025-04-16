@@ -68,67 +68,140 @@ router.get('/users/:id', auth, isAdmin, async (req, res) => {
 // @desc    Export data in various formats
 // @access  Private (admin only)
 // Query params: type=txt|sql|csv|xlsx|json
+// @route   GET api/statistics/export
+// @desc    Export data in various formats
+// @access  Private (admin only)
+// Query params: 
+//   type=txt|sql|csv|xlsx|json (required)
+//   data=users|recipes (default: users)
 router.get('/export', auth, isAdmin, async (req, res) => {
   try {
-    const { type } = req.query;
+    const { type, data = 'users' } = req.query;
 
-    // Fetch data to export (example: all users)
-    const users = await User.find().select('-password').lean();
+    // Валидация параметров
+    const validTypes = ['txt', 'sql', 'csv', 'xlsx', 'json'];
+    const validData = ['users', 'recipes'];
+    
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({ msg: 'Invalid export type. Allowed: txt, sql, csv, xlsx, json' });
+    }
+
+    if (!validData.includes(data)) {
+      return res.status(400).json({ msg: 'Invalid data type. Allowed: users, recipes' });
+    }
+
+    // Получение данных с лимитом (защита от перегрузки)
+    const MAX_EXPORT_ROWS = 10000;
+    let exportData;
+    let filename;
+    let model;
+    
+    if (data === 'recipes') {
+      exportData = await Recipe.find().limit(MAX_EXPORT_ROWS).lean();
+      filename = 'recipes';
+      model = Recipe;
+    } else {
+      exportData = await User.find().select('-password').limit(MAX_EXPORT_ROWS).lean();
+      filename = 'users';
+      model = User;
+    }
+
+    // Обработка пустых данных
+    if (!exportData || exportData.length === 0) {
+      return res.status(404).json({ msg: 'No data found for export' });
+    }
+
+    // Получаем все возможные поля модели для CSV/Excel
+    const fields = Object.keys(model.schema.paths).filter(
+      key => !key.startsWith('_') && key !== '__v'
+    );
 
     switch (type) {
       case 'json':
-        res.setHeader('Content-Disposition', 'attachment; filename=users.json');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}.json`);
         res.setHeader('Content-Type', 'application/json');
-        return res.send(JSON.stringify(users, null, 2));
+        return res.send(JSON.stringify(exportData, null, 2));
 
       case 'csv': {
-        const fields = Object.keys(users[0] || {});
-        const parser = new Parser({ fields });
-        const csv = parser.parse(users);
-        res.setHeader('Content-Disposition', 'attachment; filename=users.csv');
-        res.setHeader('Content-Type', 'text/csv');
-        return res.send(csv);
+        try {
+          const parser = new Parser({ fields });
+          const csv = parser.parse(exportData);
+          res.setHeader('Content-Disposition', `attachment; filename=${filename}.csv`);
+          res.setHeader('Content-Type', 'text/csv');
+          return res.send(csv);
+        } catch (err) {
+          console.error('CSV export error:', err);
+          return res.status(500).json({ msg: 'CSV conversion failed' });
+        }
       }
 
       case 'xlsx': {
-        const workbook = new excelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Users');
-        const columns = Object.keys(users[0] || {}).map(key => ({ header: key, key }));
-        worksheet.columns = columns;
-        worksheet.addRows(users);
-        res.setHeader('Content-Disposition', 'attachment; filename=users.xlsx');
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        await workbook.xlsx.write(res);
-        res.end();
-        break;
+        try {
+          const workbook = new excelJS.Workbook();
+          const worksheet = workbook.addWorksheet(filename);
+          
+          // Добавляем заголовки
+          worksheet.columns = fields.map(field => ({
+            header: field,
+            key: field,
+            width: 20
+          }));
+
+          // Добавляем данные
+          exportData.forEach(item => {
+            worksheet.addRow(item);
+          });
+
+          res.setHeader('Content-Disposition', `attachment; filename=${filename}.xlsx`);
+          res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+          await workbook.xlsx.write(res);
+          return res.end();
+        } catch (err) {
+          console.error('Excel export error:', err);
+          return res.status(500).json({ msg: 'Excel export failed' });
+        }
       }
 
       case 'txt': {
-        const txtData = users.map(u => JSON.stringify(u)).join('\n');
-        res.setHeader('Content-Disposition', 'attachment; filename=users.txt');
+        const txtData = exportData.map(item => 
+          fields.map(field => `${field}: ${item[field] || ''}`).join(', ')
+        ).join('\n');
+        
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}.txt`);
         res.setHeader('Content-Type', 'text/plain');
         return res.send(txtData);
       }
 
       case 'sql': {
-        // Simple SQL insert statements generation
-        const sqlStatements = users.map(u => {
-          const columns = Object.keys(u).join(', ');
-          const values = Object.values(u).map(v => typeof v === 'string' ? `'${v.replace(/'/g, "''")}'` : v).join(', ');
-          return `INSERT INTO users (${columns}) VALUES (${values});`;
-        }).join('\n');
-        res.setHeader('Content-Disposition', 'attachment; filename=users.sql');
-        res.setHeader('Content-Type', 'application/sql');
-        return res.send(sqlStatements);
+        try {
+          const tableName = data === 'recipes' ? 'recipes' : 'users';
+          const columns = fields.join(', ');
+          
+          const sqlStatements = exportData.map(item => {
+            const values = fields.map(field => {
+              const value = item[field];
+              if (value === null || value === undefined) return 'NULL';
+              if (typeof value === 'string') return `'${value.replace(/'/g, "''")}'`;
+              if (value instanceof Date) return `'${value.toISOString()}'`;
+              return value;
+            }).join(', ');
+            
+            return `INSERT INTO ${tableName} (${columns}) VALUES (${values});`;
+          }).join('\n');
+          
+          res.setHeader('Content-Disposition', `attachment; filename=${filename}.sql`);
+          res.setHeader('Content-Type', 'application/sql');
+          return res.send(sqlStatements);
+        } catch (err) {
+          console.error('SQL export error:', err);
+          return res.status(500).json({ msg: 'SQL export failed' });
+        }
       }
-
-      default:
-        return res.status(400).json({ msg: 'Invalid export type' });
     }
   } catch (err) {
-    console.error(err.message);
+    console.error('Export error:', err.message);
     res.status(500).send('Server Error');
   }
 });
 
-module.exports = router;
+module.exports = router; 
