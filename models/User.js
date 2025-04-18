@@ -59,6 +59,98 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  avatar: {
+    type: String,
+    default: '' // URL или base64
+  },
+  status: {
+    type: String,
+    enum: ['готовлю', 'жду вдохновения', 'ищу рецепт'],
+    default: 'готовлю'
+  },
+  about: {
+    type: String,
+    default: ''
+  },
+  gender: {
+    type: String,
+    enum: ['мужской', 'женский', 'другое', ''],
+    default: ''
+  },
+  hobbies: [{
+    type: String
+  }],
+  favoriteRecipes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Recipe'
+  }],
+  coverPhoto: {
+    type: String,
+    default: '' // URL или base64
+  },
+  privacySettings: {
+    type: Object,
+    default: {
+      email: false,
+      birthdate: false,
+      city: false,
+      phone: false,
+      vk: false,
+      telegram: false,
+      instagram: false,
+      website: false,
+      favoriteCuisine: false,
+      profession: false,
+      quote: false,
+      hobbies: false,
+      gender: false,
+      about: false
+    }
+  },
+  birthdate: {
+    type: String,
+    default: ''
+  },
+  city: {
+    type: String,
+    default: ''
+  },
+  phone: {
+    type: String,
+    default: ''
+  },
+  vk: {
+    type: String,
+    default: ''
+  },
+  telegram: {
+    type: String,
+    default: ''
+  },
+  instagram: {
+    type: String,
+    default: ''
+  },
+  website: {
+    type: String,
+    default: ''
+  },
+  favoriteCuisine: {
+    type: String,
+    default: ''
+  },
+  profession: {
+    type: String,
+    default: ''
+  },
+  quote: {
+    type: String,
+    default: ''
+  },
+  themeColor: {
+    type: String,
+    default: '#ff5722'
+  },
   createdAt: {
     type: Date,
     default: Date.now

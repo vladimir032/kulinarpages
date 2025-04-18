@@ -26,6 +26,54 @@ router.get('/saved-recipes', auth, async (req, res) => {
 router.get('/profile', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
+    // Get all recipes authored by this user
+    const userRecipes = await Recipe.find({ author: req.user.id });
+    const recipesCount = userRecipes.length;
+    // Sum all views for user's recipes
+    const viewsCount = userRecipes.reduce((acc, r) => acc + (r.views || 0), 0);
+    // Count likes (saved by others) for user's recipes
+    // Option 1: If using likedBy field
+    let likesCount = 0;
+    for (const recipe of userRecipes) {
+      if (Array.isArray(recipe.likedBy)) {
+        likesCount += recipe.likedBy.length;
+      } else if (typeof recipe.likes === 'number') {
+        likesCount += recipe.likes;
+      }
+    }
+    res.json({
+      ...user.toObject(),
+      stats: {
+        recipesCount,
+        likesCount,
+        viewsCount
+      }
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   PATCH api/users/profile
+// @desc    Update user profile (avatar, status, about, gender, hobbies, favoriteRecipes)
+// @access  Private
+router.patch('/profile', auth, async (req, res) => {
+  try {
+    const fields = {};
+    const allowed = [
+      'avatar', 'status', 'about', 'gender', 'hobbies', 'favoriteRecipes',
+      'coverPhoto', 'privacySettings', 'birthdate', 'city', 'phone', 'vk', 'telegram', 'instagram', 'website',
+      'favoriteCuisine', 'profession', 'quote', 'themeColor'
+    ];
+    allowed.forEach(field => {
+      if (req.body[field] !== undefined) fields[field] = req.body[field];
+    });
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: fields },
+      { new: true, runValidators: true }
+    ).select('-password');
     res.json(user);
   } catch (err) {
     console.error(err.message);

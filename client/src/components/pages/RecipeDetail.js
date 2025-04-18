@@ -24,36 +24,62 @@ import { useAuth } from '../../context/AuthContext';
 const RecipeDetail = () => {
   const [recipe, setRecipe] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [saving, setSaving] = useState(false); // Для блокировки кнопки и спиннера
+  const [error, setError] = useState(''); // Для Snackbar
   const { id } = useParams();
   const { user } = useAuth();
+
+  // Получить статус сохранения рецепта
+  const fetchIsSaved = useCallback(async () => {
+    if (!user) {
+      setIsSaved(false);
+      return;
+    }
+    try {
+      const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
+      const res = await axios.get('/api/users/saved-recipes', config);
+      const savedIds = res.data.map(r => r._id);
+      setIsSaved(savedIds.includes(id));
+    } catch (err) {
+      setIsSaved(false);
+    }
+  }, [user, id]);
 
   const fetchRecipe = useCallback(async () => {
     try {
       const res = await axios.get(`/api/recipes/${id}`);
       setRecipe(res.data);
-      if (user) {
-        setIsSaved(user.savedRecipes.includes(id));
-      }
+      await fetchIsSaved();
     } catch (err) {
       console.error('Error fetching recipe:', err);
     }
-  }, [id, user]);
-  
+  }, [id, fetchIsSaved]); // Убираем user, оставляем только id и fetchIsSaved
+
   useEffect(() => {
     fetchRecipe();
   }, [fetchRecipe]);
   
   const handleSaveRecipe = async () => {
     if (!user) return;
+    setSaving(true);
+    const prevSaved = isSaved;
+    setIsSaved(!prevSaved); // Оптимистично меняем статус
     try {
       await axios.post(`/api/recipes/${id}/save`, null, {
         headers: { 'x-auth-token': localStorage.getItem('token') }
       });
-      setIsSaved(!isSaved);
+      await fetchIsSaved(); // Подтверждаем с сервера
     } catch (err) {
+      setIsSaved(prevSaved); // Откатываем если ошибка
+      setError('Не удалось сохранить рецепт. Попробуйте ещё раз.');
       console.error('Error saving recipe:', err);
+    } finally {
+      setSaving(false);
     }
   };
+
+
+
 
   if (!recipe) {
     return <Typography>Loading...</Typography>;
@@ -99,12 +125,24 @@ const RecipeDetail = () => {
           {user && (
             <Button
               variant={isSaved ? 'contained' : 'outlined'}
-              startIcon={<FavoriteIcon />}
+              startIcon={saving ? <span className="MuiCircularProgress-root MuiCircularProgress-indeterminate" style={{width:24,height:24,marginRight:8}}><svg viewBox="22 22 44 44"><circle className="MuiCircularProgress-circle" cx="44" cy="44" r="20.2" fill="none" strokeWidth="3.6" /></svg></span> : <FavoriteIcon />}
               onClick={handleSaveRecipe}
               fullWidth
+              disabled={saving}
             >
-              {isSaved ? 'Сохранено' : 'Сохранить рецепт'}
+              {saving ? 'Секунду...': (isSaved ? 'Сохранено' : 'Сохранить рецепт')}
             </Button>
+          )}
+          {/* Snackbar для ошибок */}
+          {error && (
+            <Box sx={{ position: 'fixed', bottom: 20, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 9999 }}>
+              <Paper elevation={6} sx={{ px: 3, py: 1, background: '#d32f2f', color: '#fff' }}>
+                {error}
+                <Button color="inherit" size="small" onClick={() => setError('')} sx={{ ml: 2 }}>
+                  Закрыть
+                </Button>
+              </Paper>
+            </Box>
           )}
         </Grid>
 

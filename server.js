@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/recipes', require('./routes/recipes'));
-app.use('/api/users', require('./routes/Users'));
+app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/statistics', require('./routes/statistics')); // Подключение маршрутов статистики
 app.use('/api/admin-stats', require('./routes/adminStats')); // Глубокая статистика для админов

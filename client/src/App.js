@@ -11,6 +11,7 @@ import Navbar from './components/layout/Navbar';
 import Home from './components/pages/Home';
 import Recipes from './components/pages/Recipes';
 import MyRecipes from './components/pages/MyRecipes';
+import Profile from './components/pages/Profile';
 import RecipeDetail from './components/pages/RecipeDetail';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
@@ -50,6 +51,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <MyRecipes />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <PrivateRoute>
+                    <Profile />
                   </PrivateRoute>
                 }
               />

@@ -80,6 +80,13 @@ const Navbar = () => {
                 >
                   Выйти
                 </Button>
+                <Button
+                  color="inherit"
+                  component={RouterLink}
+                  to="/profile"
+                >
+                  Профиль
+                </Button>
               </>
             ) : (
               <>
