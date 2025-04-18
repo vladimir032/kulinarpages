@@ -87,6 +87,13 @@ const Navbar = () => {
                 >
                   Профиль
                 </Button>
+                <Button
+                  color="inherit"
+                  component={RouterLink}
+                  to="/user-search"
+                >
+                  Поиск пользователей
+                </Button>
               </>
             ) : (
               <>

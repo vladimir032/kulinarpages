@@ -12,6 +12,7 @@ import Home from './components/pages/Home';
 import Recipes from './components/pages/Recipes';
 import MyRecipes from './components/pages/MyRecipes';
 import Profile from './components/pages/Profile';
+import UserSearch from './components/users/UserSearch';
 import RecipeDetail from './components/pages/RecipeDetail';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
@@ -39,6 +40,14 @@ function App() {
           <div className="App">
             <Navbar />
             <Routes>
+              <Route
+                path="/user-search"
+                element={
+                  <PrivateRoute>
+                    <UserSearch />
+                  </PrivateRoute>
+                }
+              />
               <Route path="/my-fridge" element={<MyFridge />} />
               <Route path="/" element={<Home />} />
               <Route path="/recipes" element={<Recipes />} />
