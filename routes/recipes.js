@@ -48,11 +48,15 @@ router.get('/popular', async (req, res) => {
 });
 
 // @route   GET api/recipes/:id
-// @desc    Get recipe by ID
+// @desc    Get recipe by ID and increment views
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const recipe = await Recipe.findById(req.params.id);
+    const recipe = await Recipe.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
     if (!recipe) {
       return res.status(404).json({ msg: 'Recipe not found' });
     }

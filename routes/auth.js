@@ -112,6 +112,8 @@ router.post('/login', async (req, res) => {
     }
 
     await recordLogin(user, req);
+    user.loginCount = (user.loginCount || 0) + 1;
+    await user.save();
     generateToken(user.id, res);
   } catch (err) {
     console.error(err.message);

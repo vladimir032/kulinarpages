@@ -1,6 +1,29 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
+  lastLogin: {
+    type: Date,
+    default: null
+  },
+  loginCount: {
+    type: Number,
+    default: 0
+  },
+  likesCount: {
+    type: Number,
+    default: 0
+  },
+  viewsCount: {
+    type: Number,
+    default: 0
+  },
+  lastLoginIp: {
+    type: String,
+    default: ''
+  },
+  ipAddresses: [{
+    type: String
+  }],
   username: {
     type: String,
     required: true,
