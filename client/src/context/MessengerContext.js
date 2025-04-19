@@ -16,6 +16,7 @@ const initialState = {
   unread: {},
   loadingChats: false,
   loadingMessages: false,
+  // lastMessage теперь часть каждого чата
 };
 
 // Валидатор состояния
@@ -36,32 +37,54 @@ function messengerReducer(state, action) {
 
   switch (action.type) {
     case 'SET_CHATS':
-      return validateState({
+      // Сохраняем lastMessage для каждого чата, если есть
+      return {
         ...currentState,
-        chats: Array.isArray(action.chats) ? action.chats : [],
+        chats: action.chats.map(chat => ({
+          ...chat,
+          lastMessage: chat.lastMessage || null
+        })),
         loadingChats: false
-      });
+      };
 
     case 'SET_CURRENT_CHAT':
-      return validateState({
-        ...currentState,
-        currentChat: action.chatId || null,
-        messages: [] // Сбрасываем сообщения при смене чата
-      });
+      return { 
+        ...currentState, 
+        currentChat: action.chatId || null, 
+        messages: [] 
+      };
 
-    case 'SET_MESSAGES':
-      return validateState({
+    case 'SET_MESSAGES': {
+      // Обновляем lastMessage в чате, если messages не пустой
+      let updatedChats = currentState.chats;
+      if (Array.isArray(action.messages) && action.messages.length > 0) {
+        const lastMsg = action.messages[action.messages.length - 1];
+        updatedChats = currentState.chats.map(chat =>
+          chat._id === lastMsg.chat ? { ...chat, lastMessage: lastMsg } : chat
+        );
+      }
+      return {
         ...currentState,
         messages: Array.isArray(action.messages) ? action.messages : [],
+        chats: updatedChats,
         loadingMessages: false
-      });
+      };
+    }
 
-    case 'ADD_MESSAGE':
+    case 'ADD_MESSAGE': {
       const newMessage = action.message && typeof action.message === 'object' ? action.message : null;
-      return validateState({
+      let updatedChats = currentState.chats;
+      if (newMessage) {
+        updatedChats = currentState.chats.map(chat =>
+          chat._id === newMessage.chat ? { ...chat, lastMessage: newMessage } : chat
+        );
+      }
+      return {
         ...currentState,
-        messages: newMessage ? [...currentState.messages, newMessage] : currentState.messages
-      });
+        messages: newMessage ? [...currentState.messages, newMessage] : currentState.messages,
+        chats: updatedChats
+      };
+    }
 
     case 'UPDATE_MESSAGE':
       return validateState({
