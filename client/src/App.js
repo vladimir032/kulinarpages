@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './context/AuthContext';
+import { MessengerProvider } from './context/MessengerContext';
+import MessengerTrigger from './components/messenger/MessengerTrigger';
 import MyFridge from './components/pages/MyFridge';
 
 
@@ -36,8 +38,10 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <Router>
-          <div className="App">
+        <MessengerProvider>
+          <Router>
+            <div className="App">
+              <MessengerTrigger />
             <Navbar />
             <Routes>
               <Route
@@ -82,6 +86,7 @@ function App() {
             </Routes>
           </div>
         </Router>
+      </MessengerProvider>
       </AuthProvider>
     </ThemeProvider>
   );

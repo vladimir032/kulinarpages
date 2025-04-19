@@ -17,9 +17,11 @@ import {
   Button
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { useMessenger } from '../../context/MessengerContext';
 
 // Модальное окно профиля пользователя (упрощённая версия)
 function UserProfileModal({ open, user, onClose }) {
+  const { openChat } = useMessenger();
   if (!user) return null;
   return (
     <Modal open={open} onClose={onClose}>
@@ -46,13 +48,31 @@ function UserProfileModal({ open, user, onClose }) {
           {user.favoriteRecipes && <Typography sx={{ mt: 1 }}>{user.favoriteRecipes}</Typography>}
 
         </Box>
-        <Button variant="contained" fullWidth onClick={onClose}>Закрыть</Button>
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          sx={{ mb: 1 }}
+          onClick={async () => {
+            await openChat(user._id);
+            if (typeof window !== 'undefined') {
+              // Открыть MessengerModal (если есть глобальный стейт)
+              const evt = new CustomEvent('open-messenger');
+              window.dispatchEvent(evt);
+            }
+            onClose();
+          }}
+        >
+          Написать
+        </Button>
+        <Button variant="outlined" fullWidth onClick={onClose}>Закрыть</Button>
       </Paper>
     </Modal>
   );
 }
 
 export default function UserSearch({ currentUserId, onUserSelect }) {
+  const { openChat, setMessengerOpen, setActiveTab } = useMessenger();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -113,6 +133,8 @@ export default function UserSearch({ currentUserId, onUserSelect }) {
   const handleInputChange = (e) => {
     setQuery(e.target.value);
   };
+
+
 
   const handleUserClick = (user) => {
     setSelectedUser(user);

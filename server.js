@@ -23,6 +23,9 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/recipes', require('./routes/recipes'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/users', require('./routes/userSearch'));
+const messenger = require('./routes/messenger');
+const { initSockets } = require('./sockets/messenger');
+app.use('/api/messenger', messenger);
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/statistics', require('./routes/statistics')); // Подключение маршрутов статистики
 app.use('/api/admin-stats', require('./routes/adminStats')); // Глубокая статистика для админов
@@ -36,4 +39,5 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+initSockets(server);
