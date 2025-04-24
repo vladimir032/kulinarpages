@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const friendsAndFollowersRoutes = require('./routes/friendsAndFollowers');
 const connectDB = require('./config/db');
+const bodyParser = require('body-parser');
 
 // Load environment variables
 dotenv.config();
@@ -23,6 +25,8 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/recipes', require('./routes/recipes'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/users', require('./routes/userSearch'));
+app.use(bodyParser.json()); // Для парсинга JSON тела запроса
+app.use('/api/users', friendsAndFollowersRoutes);
 const messenger = require('./routes/messenger');
 const { initSockets } = require('./sockets/messenger');
 app.use('/api/messenger', messenger);

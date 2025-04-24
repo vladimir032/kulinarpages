@@ -93,7 +93,7 @@ const Navbar = () => {
                   to="/user-search"
                 >
                   Поиск пользователей
-                </Button>
+                </Button>                
               </>
             ) : (
               <>

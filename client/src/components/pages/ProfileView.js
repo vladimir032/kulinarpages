@@ -98,6 +98,72 @@ export default function ProfileView({
                 ) : (
                   <Typography sx={{ mt: 2 }}><b>Статус:</b> {profile.status}</Typography>
                 )}
+                <Stack 
+                  direction="row" 
+                  py={1}
+                  spacing={1}
+                  sx={{
+                    mt: 2,
+                    justifyContent: 'space-between',
+                    width: '110%',
+                  }}
+                >
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    href="/friends"
+                    size="small"
+                    sx={{
+                      flex: 1,
+                      minWidth: 0, // Важно для равномерного распределения
+                      textTransform: 'none',
+                      fontSize: '0.875rem',
+                      py: 0.5,
+                      px: 1,
+                      width: '9%',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Друзья
+                  </Button>
+                  <Button 
+                    variant="contained" 
+                    color="secondary" 
+                    href="/followers"
+                    size="small"
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      textTransform: 'none',
+                      fontSize: '0.85rem',
+                      py: 0.5,
+                      px: 1,
+                      whiteSpace: 'nowrap',
+                      mx: 1,
+                      width: '100%'
+                    }}
+                  >
+                    Подписчики
+                  </Button>
+                  <Button 
+                    variant="contained" 
+                    color="warning" 
+                    href="/friend-requests"
+                    size="small"
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      textTransform: 'none',
+                      fontSize: '0.875rem',
+                      py: 0.5,
+                      px: 1,
+                      whiteSpace: 'nowrap',
+                      width: '90%'
+                    }}
+                  >
+                    Заявки
+                  </Button>
+                </Stack>
               </Box>
             </Stack>
           </Grid>

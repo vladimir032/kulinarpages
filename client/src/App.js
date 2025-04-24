@@ -14,13 +14,14 @@ import Home from './components/pages/Home';
 import Recipes from './components/pages/Recipes';
 import MyRecipes from './components/pages/MyRecipes';
 import Profile from './components/pages/Profile';
-import UserSearch from './components/users/UserSearch';
+import UserSearchWrapper from './components/users/UserSearchWrapper';
 import RecipeDetail from './components/pages/RecipeDetail';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import PrivateRoute from './components/routing/PrivateRoute';
 import AdminRoute from './components/routing/AdminRoute';
 import AdminPanel from './components/pages/AdminPanel';
+import { FriendsListWrapper, FollowersListWrapper, FriendRequestsWrapper } from './components/friends/FriendsWrapper';
 
 const theme = createTheme({
   palette: {
@@ -45,10 +46,34 @@ function App() {
             <Navbar />
             <Routes>
               <Route
+                path="/friends"
+                element={
+                  <PrivateRoute>
+                    <FriendsListWrapper />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/followers"
+                element={
+                  <PrivateRoute>
+                    <FollowersListWrapper />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/friend-requests"
+                element={
+                  <PrivateRoute>
+                    <FriendRequestsWrapper />
+                  </PrivateRoute>
+                }
+              />
+              <Route
                 path="/user-search"
                 element={
                   <PrivateRoute>
-                    <UserSearch />
+                    <UserSearchWrapper />
                   </PrivateRoute>
                 }
               />

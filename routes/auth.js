@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
+const Friend = require('../models/friend');
+const Follower = require('../models/Follower');
 const LoginRecord = require('../models/LoginRecord');
 
 // Функция для получения IP-адреса клиента
