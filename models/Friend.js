@@ -20,13 +20,15 @@ const friendSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Метод для подтверждения заявки в друзья
+friendSchema.methods.isPending = function() {
+  return this.status === 'pending';
+};
+
 friendSchema.methods.acceptRequest = function() {
   this.status = 'accepted';
   return this.save();
 };
 
-// Метод для отклонения заявки в друзья
 friendSchema.methods.rejectRequest = function() {
   this.status = 'rejected';
   return this.save();

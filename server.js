@@ -6,33 +6,27 @@ const friendsAndFollowersRoutes = require('./routes/friendsAndFollowers');
 const connectDB = require('./config/db');
 const bodyParser = require('body-parser');
 
-// Load environment variables
 dotenv.config();
 
-// Initialize express
 const app = express();
 
-// Connect to database
 connectDB();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/recipes', require('./routes/recipes'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/users', require('./routes/userSearch'));
-app.use(bodyParser.json()); // Для парсинга JSON тела запроса
+app.use(bodyParser.json()); 
 app.use('/api/users', friendsAndFollowersRoutes);
 const messenger = require('./routes/messenger');
 const { initSockets } = require('./sockets/messenger');
 app.use('/api/messenger', messenger);
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/statistics', require('./routes/statistics')); // Подключение маршрутов статистики
-app.use('/api/admin-stats', require('./routes/adminStats')); // Глубокая статистика для админов
+app.use('/api/statistics', require('./routes/statistics')); 
+app.use('/api/admin-stats', require('./routes/adminStats')); 
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {

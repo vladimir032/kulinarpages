@@ -108,7 +108,6 @@ router.put('/:id', auth, async (req, res) => {
 
     const user = await User.findById(req.user.id);
 
-    // Allow if admin or author
     if (recipe.author.toString() !== req.user.id && user.role !== 'admin') {
       return res.status(401).json({ msg: 'User not authorized' });
     }
@@ -138,7 +137,6 @@ router.delete('/:id', auth, async (req, res) => {
 
     const user = await User.findById(req.user.id);
 
-    // Allow if admin or author
     if (recipe.author.toString() !== req.user.id && user.role !== 'admin') {
       return res.status(401).json({ msg: 'User not authorized' });
     }

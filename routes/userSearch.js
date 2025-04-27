@@ -4,7 +4,6 @@ const { body, query, validationResult } = require('express-validator');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 
-// Middleware: Validate search query params
 const validateSearch = [
   query('query').isString().trim().notEmpty().withMessage('Запрос обязателен'),
   query('limit').optional().isInt({ min: 1, max: 50 }).toInt(),
@@ -52,7 +51,6 @@ router.get('/search', auth, validateSearch, async (req, res, next) => {
   }
 });
 
-// Centralized error handler
 router.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ error: 'Server error' });

@@ -6,7 +6,7 @@ const Recipe = require('../models/Recipe');
 const { Parser } = require('json2csv');
 const excelJS = require('exceljs');
 
-// Middleware to check if user is admin
+// @route   GET api/statistics/users
 const isAdmin = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -26,7 +26,6 @@ const isAdmin = async (req, res, next) => {
 // @access  Private (admin only)
 router.get('/recipes', auth, isAdmin, async (req, res) => {
   try {
-    // TODO: Implement aggregation of views, likes, interactions per recipe
     const stats = await Recipe.aggregate([
       {
         $project: {
@@ -50,7 +49,6 @@ router.get('/recipes', auth, isAdmin, async (req, res) => {
 router.get('/users/:id', auth, isAdmin, async (req, res) => {
   try {
     const userId = req.params.id;
-    // TODO: Implement fetching detailed user statistics
     const userStats = {
       userId,
       savedRecipesCount: 0,
@@ -71,9 +69,6 @@ router.get('/users/:id', auth, isAdmin, async (req, res) => {
 // @route   GET api/statistics/export
 // @desc    Export data in various formats
 // @access  Private (admin only)
-// Query params: 
-//   type=txt|sql|csv|xlsx|json (required)
-//   data=users|recipes (default: users)
 router.get('/export', auth, isAdmin, async (req, res) => {
   try {
     const { type, data = 'users' } = req.query;
@@ -90,7 +85,6 @@ router.get('/export', auth, isAdmin, async (req, res) => {
       return res.status(400).json({ msg: 'Invalid data type. Allowed: users, recipes' });
     }
 
-    // Получение данных с лимитом (защита от перегрузки)
     const MAX_EXPORT_ROWS = 10000;
     let exportData;
     let filename;
@@ -106,12 +100,10 @@ router.get('/export', auth, isAdmin, async (req, res) => {
       model = User;
     }
 
-    // Обработка пустых данных
     if (!exportData || exportData.length === 0) {
       return res.status(404).json({ msg: 'No data found for export' });
     }
 
-    // Получаем все возможные поля модели для CSV/Excel
     const fields = Object.keys(model.schema.paths).filter(
       key => !key.startsWith('_') && key !== '__v'
     );
