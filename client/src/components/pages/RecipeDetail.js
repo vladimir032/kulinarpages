@@ -24,12 +24,12 @@ import { useAuth } from '../../context/AuthContext';
 const RecipeDetail = () => {
   const [recipe, setRecipe] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [saving, setSaving] = useState(false); // Для блокировки кнопки и спиннера
-  const [error, setError] = useState(''); // Для Snackbar
+  const [saving, setSaving] = useState(false); 
+  const [error, setError] = useState(''); 
   const { id } = useParams();
   const { user } = useAuth();
 
-  // Получить статус сохранения рецепта
+  // получение статуса для сохранения
   const fetchIsSaved = useCallback(async () => {
     if (!user) {
       setIsSaved(false);
@@ -53,7 +53,7 @@ const RecipeDetail = () => {
     } catch (err) {
       console.error('Error fetching recipe:', err);
     }
-  }, [id, fetchIsSaved]); // Убираем user, оставляем только id и fetchIsSaved
+  }, [id, fetchIsSaved]); 
 
   useEffect(() => {
     fetchRecipe();
@@ -63,14 +63,14 @@ const RecipeDetail = () => {
     if (!user) return;
     setSaving(true);
     const prevSaved = isSaved;
-    setIsSaved(!prevSaved); // Оптимистично меняем статус
+    setIsSaved(!prevSaved); // смена статуса
     try {
       await axios.post(`/api/recipes/${id}/save`, null, {
         headers: { 'x-auth-token': localStorage.getItem('token') }
       });
-      await fetchIsSaved(); // Подтверждаем с сервера
+      await fetchIsSaved();
     } catch (err) {
-      setIsSaved(prevSaved); // Откатываем если ошибка
+      setIsSaved(prevSaved);
       setError('Не удалось сохранить рецепт. Попробуйте ещё раз.');
       console.error('Error saving recipe:', err);
     } finally {
@@ -88,7 +88,6 @@ const RecipeDetail = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Grid container spacing={4}>
-        {/* Left Column - Image and Basic Info */}
         <Grid item xs={12} md={6}>
           <img
             src={recipe.imageUrl}
@@ -133,7 +132,6 @@ const RecipeDetail = () => {
               {saving ? 'Секунду...': (isSaved ? 'Сохранено' : 'Сохранить рецепт')}
             </Button>
           )}
-          {/* Snackbar для ошибок */}
           {error && (
             <Box sx={{ position: 'fixed', bottom: 20, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 9999 }}>
               <Paper elevation={6} sx={{ px: 3, py: 1, background: '#d32f2f', color: '#fff' }}>
@@ -146,7 +144,6 @@ const RecipeDetail = () => {
           )}
         </Grid>
 
-        {/* Right Column - Recipe Details */}
         <Grid item xs={12} md={6}>
           <Typography variant="h4" gutterBottom>
             {recipe.title}

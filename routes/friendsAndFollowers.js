@@ -20,7 +20,6 @@ router.post('/add', auth, async (req, res) => {
 
   try {
     if (action === 'friend') {
-      // Проверка, если запрос уже существует
       const existingFriendRequest = await Friend.findOne({
         $or: [
           { user: targetUserId, friend: userId },
@@ -35,8 +34,7 @@ router.post('/add', auth, async (req, res) => {
           return res.status(400).json({ message: 'Вы уже друзья.' });
         }
       }
-
-      // Создаем новый запрос на дружбу
+      //логгируем создание дружбы
       console.log('Создаём Friend:', { user: targetUserId, friend: userId });
       const newFriendRequest = new Friend({
         user: targetUserId,
@@ -48,14 +46,12 @@ router.post('/add', auth, async (req, res) => {
     }
 
     if (action === 'follow') {
-      // Проверка, если пользователь уже подписан
       const existingFollower = await Follower.findOne({ user: targetUserId, follower: userId });
 
       if (existingFollower) {
         return res.status(400).json({ message: 'Вы уже подписаны на этого пользователя.' });
       }
 
-      // Создаем новую подписку
       console.log('Создаём Follower:', { user: targetUserId, follower: userId });
       const newFollower = new Follower({
         user: targetUserId,
@@ -72,7 +68,6 @@ router.post('/add', auth, async (req, res) => {
   }
 });
 
-// Подтвердить заявку в друзья
 router.post('/friend/accept', async (req, res) => {
   const { userId, targetUserId } = req.body;
 
@@ -91,7 +86,6 @@ router.post('/friend/accept', async (req, res) => {
   }
 });
 
-// Отклонить заявку в друзья
 router.post('/friend/reject', async (req, res) => {
   const { userId, targetUserId } = req.body;
 
@@ -110,7 +104,6 @@ router.post('/friend/reject', async (req, res) => {
   }
 });
 
-// Получить входящие заявки в друзья
 router.get('/friend-requests/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
@@ -129,7 +122,6 @@ router.get('/friend-requests/:userId', async (req, res) => {
   }
 });
 
-// Роут для получения списка друзей
 router.get('/friends/:userId', async (req, res) => {
   const { userId } = req.params;
 
@@ -157,7 +149,6 @@ router.get('/friends/:userId', async (req, res) => {
   }
 });
 
-// Роут для получения списка подписчиков
 router.get('/followers/:userId', async (req, res) => {
   const { userId } = req.params;
 

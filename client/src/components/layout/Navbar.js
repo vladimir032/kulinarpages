@@ -22,7 +22,6 @@ const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Навигационные ссылки
   const navLinks = [
     { label: 'Главная', to: '/' },
     { label: 'Рецепты', to: '/recipes' },
@@ -58,7 +57,7 @@ const Navbar = () => {
             Кулинарные рецепты
           </Typography>
 
-          {/* Кнопка меню для мобильных устройств */}
+          {/* кнопка для мобилок */}
           <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               color="inherit"
@@ -69,8 +68,6 @@ const Navbar = () => {
               <MenuIcon />
             </IconButton>
           </Box>
-
-          {/* Обычные кнопки навигации для md+ */}
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
             {navLinks.map((link) => (
               <Button
@@ -120,8 +117,6 @@ const Navbar = () => {
               </>
             )}
           </Box>
-
-          {/* Drawer для мобильных устройств */}
           <Drawer
             anchor="left"
             open={drawerOpen}

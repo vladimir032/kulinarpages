@@ -19,9 +19,8 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { useMessenger } from '../../context/MessengerContext';
 
-// Модальное окно профиля пользователя (упрощённая версия)
 function UserProfileModal({ open, user, onClose, currentUserId }) {
-  const [status, setStatus] = useState('idle'); // idle, pending, success, error
+  const [status, setStatus] = useState('idle');
   const { openChat } = useMessenger();
 
   const handleSubscribe = async () => {
@@ -97,7 +96,6 @@ function UserProfileModal({ open, user, onClose, currentUserId }) {
           onClick={async () => {
             await openChat(user._id);
             if (typeof window !== 'undefined') {
-              // Открыть MessengerModal (если есть глобальный стейт)
               const evt = new CustomEvent('open-messenger');
               window.dispatchEvent(evt);
             }

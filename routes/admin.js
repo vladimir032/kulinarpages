@@ -19,9 +19,7 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
-// @route   GET api/admin/statistics
-// @desc    Get site statistics
-// @access  Private (admin only)
+//api/admin/statistics
 router.get('/statistics', auth, isAdmin, async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
@@ -42,9 +40,7 @@ router.get('/statistics', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   GET api/admin/users
-// @desc    Get all users
-// @access  Private (admin only)
+// api/admin/users
 router.get('/users', auth, isAdmin, async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -55,9 +51,7 @@ router.get('/users', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   PUT api/admin/users/:id/block
-// @desc    Block a user
-// @access  Private (admin only)
+//api/admin/users/:id/block
 router.put('/users/:id/block', auth, isAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -72,9 +66,7 @@ router.put('/users/:id/block', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   PUT api/admin/users/:id/unblock
-// @desc    Unblock a user
-// @access  Private (admin only)
+//api/admin/users/:id/unblock
 router.put('/users/:id/unblock', auth, isAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -89,9 +81,7 @@ router.put('/users/:id/unblock', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   PUT api/admin/users/:id/restrict
-// @desc    Restrict a user until a certain date
-// @access  Private (admin only)
+//api/admin/users/:id/restrict
 router.put('/users/:id/restrict', auth, isAdmin, async (req, res) => {
   try {
     const { restrictionUntil } = req.body;

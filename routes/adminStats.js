@@ -5,7 +5,6 @@ const Recipe = require('../models/Recipe');
 const LoginRecord = require('../models/LoginRecord');
 const auth = require('../middleware/auth');
 
-// Middleware: Только для админов
 const isAdmin = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -21,7 +20,6 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
-// 1. Новые пользователи/рецепты по дням/месяцам
 router.get('/new-users', auth, isAdmin, async (req, res) => {
   try {
     const by = req.query.by === 'hour' ? '%Y-%m-%d %H:00' : '%Y-%m-%d';
@@ -55,12 +53,10 @@ router.get('/new-recipes', auth, isAdmin, async (req, res) => {
   }
 });
 
-// 2. Самые активные пользователи
+
 router.get('/top-users', auth, isAdmin, async (req, res) => {
   try {
-    // Получаем всех пользователей
     const users = await User.find();
-    // Получаем все рецепты
     const recipes = await Recipe.find();
     // Считаем активность: количество сохранённых рецептов (лайков), количество просмотров всех их рецептов, количество созданных рецептов
     const userStats = users.map(user => {

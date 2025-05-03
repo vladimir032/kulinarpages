@@ -35,8 +35,8 @@ const Recipes = () => {
     category: '',
     difficulty: '',
     prepTime: [1, 500],
-    sortByCalories: null, // null, 'asc', 'desc'
-    sortByIngredients: null, // null, 'asc', 'desc'
+    sortByCalories: null, 
+    sortByIngredients: null,
   });
 
   useEffect(() => {
@@ -121,17 +121,17 @@ const Recipes = () => {
     });
 
   return (
-      <Container maxWidth="xl" sx={{ mt: 6, mb: 6 }}> {/* Увеличена ширина контейнера */}
-        <Grid container spacing={4}> {/* Увеличен spacing между блоками */}
+      <Container maxWidth="xl" sx={{ mt: 6, mb: 6 }}> 
+        <Grid container spacing={4}>
           {/* Filters Sidebar */}
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 3, borderRadius: 3 }}> {/* Увеличен padding и скругление */}
-              <Typography variant="h5" gutterBottom sx={{ mb: 3 }}> {/* Увеличен размер заголовка */}
+            <Paper sx={{ p: 3, borderRadius: 3 }}> 
+              <Typography variant="h5" gutterBottom sx={{ mb: 3 }}> 
                 Фильтры
               </Typography>
               
               {/* Category Filter */}
-              <FormControl fullWidth sx={{ mb: 4 }}> {/* Увеличен отступ */}
+              <FormControl fullWidth sx={{ mb: 4 }}> 
                 <InputLabel>Категория</InputLabel>
                 <Select
                   value={filters.category}
@@ -188,8 +188,7 @@ const Recipes = () => {
                   </Typography>
                 </Box>
               </Box>
-    
-              {/* Sorting Options */}
+
               <FormGroup>
                 <FormControlLabel
                   control={
@@ -200,7 +199,7 @@ const Recipes = () => {
                     />
                   }
                   label={
-                    <Typography variant="body1"> {/* Увеличен размер текста */}
+                    <Typography variant="body1"> 
                       Сортировать по калориям {filters.sortByCalories && 
                         `(${filters.sortByCalories === 'desc' ? '▼' : '▲'})`}
                     </Typography>
@@ -224,10 +223,8 @@ const Recipes = () => {
               </FormGroup>
             </Paper>
           </Grid>
-    
-          {/* Main Content */}
+
           <Grid item xs={12} md={9}>
-            {/* Search Bar */}
             <TextField
               fullWidth
               label="Найти рецепт"
@@ -243,8 +240,7 @@ const Recipes = () => {
                 }
               }}
             />
-    
-            {/* Recipes Grid */}
+
             <Grid container spacing={4}> 
               {loading ? (
                 Array.from(new Array(6)).map((_, index) => (

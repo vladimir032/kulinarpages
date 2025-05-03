@@ -16,7 +16,6 @@ const checkChatAccess = async (req, res, next) => {
   next();
 };
 
-// GET /chats - список чатов пользователя
 router.get('/chats', auth, async (req, res) => {
   const chats = await Chat.find({ participants: req.user.id })
     .populate({
@@ -31,7 +30,7 @@ router.get('/chats', auth, async (req, res) => {
   res.json(chats);
 });
 
-// GET /messages/:chatId?limit=20 - история сообщений
+// история сообщений в чате
 router.get('/messages/:chatId', auth, checkChatAccess, [
   query('limit').optional().isInt({ min: 1, max: 100 }).toInt()
 ], async (req, res) => {
@@ -41,10 +40,9 @@ router.get('/messages/:chatId', auth, checkChatAccess, [
     .sort('-createdAt')
     .limit(limit)
     .lean();
-  res.json(messages.reverse()); // от старых к новым
+  res.json(messages.reverse()); 
 });
 
-// POST /messages - отправка нового сообщения
 router.post(
   '/messages',
   auth,
@@ -68,7 +66,6 @@ router.post(
   }
 );
 
-// PUT /messages/read - отметить сообщения прочитанными
 router.put('/messages/read', auth, [
   body('chat').isMongoId()
 ], async (req, res) => {
@@ -77,7 +74,7 @@ router.put('/messages/read', auth, [
   res.json({ success: true });
 });
 
-// POST /chats - создать чат между двумя пользователями
+// создаем чат
 router.post('/chats', auth, body('userId').isMongoId(), async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

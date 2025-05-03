@@ -6,7 +6,6 @@ const FriendRequests = ({ userId }) => {
   const [friendRequests, setFriendRequests] = useState([]);
 
   useEffect(() => {
-    // Загружаем все заявки в друзья
     axios.get(`/api/users/friend-requests/${userId}`)
       .then(response => {
         setFriendRequests(response.data);
@@ -19,7 +18,6 @@ const FriendRequests = ({ userId }) => {
   const acceptRequest = (targetUserId) => {
     axios.post('/api/users/friend/accept', { userId, targetUserId })
       .then(() => {
-        // Обновляем список после принятия заявки
         setFriendRequests(friendRequests.filter(request => request.userId !== targetUserId));
       })
       .catch(error => {
@@ -30,7 +28,7 @@ const FriendRequests = ({ userId }) => {
   const rejectRequest = (targetUserId) => {
     axios.post('/api/users/friend/reject', { userId, targetUserId })
       .then(() => {
-        // Обновляем список после отклонения заявки
+        // список при отклонении
         setFriendRequests(friendRequests.filter(request => request.userId !== targetUserId));
       })
       .catch(error => {

@@ -115,7 +115,7 @@ export default function ProfileView({
                     size="small"
                     sx={{
                       flex: 1,
-                      minWidth: 0, // Важно для равномерного распределения
+                      minWidth: 0, 
                       textTransform: 'none',
                       fontSize: '0.875rem',
                       py: 0.5,

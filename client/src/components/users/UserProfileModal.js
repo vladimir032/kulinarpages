@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useMessenger } from '../../context/MessengerContext';
 
 export default function UserProfileModal({ open, user, onClose, currentUserId }) {
-  const [status, setStatus] = useState('idle'); // idle, pending, success, error
+  const [status, setStatus] = useState('idle'); 
   const { openChat } = useMessenger();
 
   const handleSubscribe = async () => {
@@ -71,7 +71,7 @@ export default function UserProfileModal({ open, user, onClose, currentUserId })
                   onClick={async () => {
                     await openChat(user._id);
                     if (typeof window !== 'undefined') {
-                      // Открыть MessengerModal (если есть глобальный стейт)
+                      // открваем MessengerModal
                       const evt = new CustomEvent('open-messenger');
                       window.dispatchEvent(evt);
                     }

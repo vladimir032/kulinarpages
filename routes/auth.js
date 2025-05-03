@@ -26,7 +26,6 @@ const getClientIp = (req) => {
   return ip || 'unknown';
 };
 
-// Функция для создания JWT токена
 const generateToken = (userId, res) => {
   const payload = { user: { id: userId } };
   jwt.sign(
