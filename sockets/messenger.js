@@ -4,8 +4,8 @@ const Chat = require('../models/Chat');
 const Message = require('../models/Message');
 const User = require('../models/User');
 
-const onlineUsers = new Map(); // userId -> socketId
-const typingUsers = new Map(); // chatId -> Set<userId>
+const onlineUsers = new Map(); 
+const typingUsers = new Map(); 
 
 function initSockets(server) {
   const io = new Server(server, {

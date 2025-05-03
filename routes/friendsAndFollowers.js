@@ -4,11 +4,12 @@ const Friend = require('../models/friend');
 const Follower = require('../models/Follower');
 const auth = require('../middleware/auth');
 
-// Отправить заявку в друзья
 router.post('/add', auth, async (req, res) => {
   const { userId, targetUserId, action } = req.body;
-
-  // Проверка обязательных полей
+  if (!userId || !targetUserId || !action) {
+    console.error('userId, targetUserId или action не переданы', { userId, targetUserId, action });
+    return res.status(400).json({ message: 'userId, targetUserId и action обязательны' });
+  }
   if (!userId || !targetUserId) {
     console.error('userId или targetUserId не переданы', { userId, targetUserId, action });
     return res.status(400).json({ message: 'userId и targetUserId обязательны' });
@@ -113,7 +114,7 @@ router.post('/friend/reject', async (req, res) => {
 router.get('/friend-requests/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
-    const requests = await Friend.find({ friend: userId, status: 'pending' })
+    const requests = await Friend.find({ user: userId, status: 'pending' })
       .populate('user', 'username avatar status');
     const requestList = requests.map(req => ({
       userId: req.user._id,

@@ -8,7 +8,6 @@ const Friend = require('../models/friend');
 const Follower = require('../models/Follower');
 const LoginRecord = require('../models/LoginRecord');
 
-// Функция для получения IP-адреса клиента
 const getClientIp = (req) => {
   let ip = req.ip || 
           req.headers['x-forwarded-for'] || 
@@ -16,12 +15,10 @@ const getClientIp = (req) => {
           req.socket.remoteAddress ||
           (req.connection.socket ? req.connection.socket.remoteAddress : null);
 
-  // Преобразование IPv6 в IPv4 если нужно
   if (ip && ip.includes('::ffff:')) {
-    ip = ip.split(':').pop(); // Извлекаем IPv4 часть
+    ip = ip.split(':').pop(); // Извлекаем IPv4 часть из IPv6
   }
   
-  // Если IP это список (x-forwarded-for может содержать несколько адресов)
   if (ip && ip.includes(',')) {
     ip = ip.split(',')[0].trim();
   }
@@ -95,7 +92,7 @@ router.post('/login', async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ msg: 'Неверный email или пароль!' });
     }
 
     if (user.isBlocked) {
@@ -110,7 +107,7 @@ router.post('/login', async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ msg: 'Неверный пароль!' });
     }
 
     await recordLogin(user, req);
