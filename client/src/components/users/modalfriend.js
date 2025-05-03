@@ -30,13 +30,21 @@ export default function UserProfileModal({ open, user, onClose, currentUserId })
                   fullWidth
                   sx={{ mb: 1 }}
                   onClick={async () => {
-                    await openChat(user._id);
-                    if (typeof window !== 'undefined') {
-                      // Открыть MessengerModal (если есть глобальный стейт)
-                      const evt = new CustomEvent('open-messenger');
-                      window.dispatchEvent(evt);
+                    try {
+                      console.log('[MODALFRIEND] Попытка открыть чат:');
+                      console.log('[MODALFRIEND] currentUserId:', currentUserId);
+                      console.log('[MODALFRIEND] user._id (собеседник):', user?._id);
+                      console.log('[MODALFRIEND] user объект:', user);
+                      await openChat(user._id);
+                      if (typeof window !== 'undefined') {
+                        // Открыть MessengerModal (если есть глобальный стейт)
+                        const evt = new CustomEvent('open-messenger');
+                        window.dispatchEvent(evt);
+                      }
+                      onClose();
+                    } catch (e) {
+                      console.error('[MODALFRIEND] Ошибка при открытии чата:', e);
                     }
-                    onClose();
                   }}
                 >
                   Написать

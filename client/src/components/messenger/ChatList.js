@@ -3,7 +3,7 @@ import { List, ListItem, ListItemAvatar, Avatar, ListItemText, Badge, Box, Typog
 import { useMessenger } from '../../context/MessengerContext';
 
 export default function ChatList({ onSelect }) {
-  const { chats, currentChat, onlineUsers, loadingChats, user } = useMessenger();
+  const { chats, currentChat, onlineUsers, loadingChats, user, unread } = useMessenger();
 
   const truncateText = (text) => {
     if (!text) return 'Нет сообщений';
@@ -38,6 +38,7 @@ export default function ChatList({ onSelect }) {
             const other = chat.participants.find(u => u && u._id !== user?._id);
             const isOnline = onlineUsers.includes(other?._id);
             const lastMsgText = truncateText(chat.lastMessage?.text);
+            const unreadCount = unread[chat._id] || 0;
             
             return (
               <ListItem
@@ -49,8 +50,8 @@ export default function ChatList({ onSelect }) {
               >
                 <ListItemAvatar>
                   <Badge
-                    color={isOnline ? 'success' : 'default'}
-                    variant="dot"
+                    color={unreadCount > 0 ? 'error' : (isOnline ? 'success' : 'default')}
+                    badgeContent={unreadCount > 0 ? unreadCount : null}
                     overlap="circular"
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                   >

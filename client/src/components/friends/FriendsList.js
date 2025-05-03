@@ -2,12 +2,24 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Box, Typography, Avatar, Paper, Stack } from '@mui/material';
 import UserProfileModal from '../users/modalfriend';
+import { useAuth } from '../../context/AuthContext';
 
 
 const FriendsList = ({ userId }) => {
   const [friends, setFriends] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const { user } = useAuth();
+  const currentUserId = user?._id;
+
+  // Лог для отладки
+  React.useEffect(() => {
+    if (modalOpen && selectedUser) {
+      console.log('[FRIENDSLIST] Открыта модалка для:', selectedUser);
+      console.log('[FRIENDSLIST] currentUserId:', currentUserId);
+      console.log('[FRIENDSLIST] Проверка currentUserId:', user?._id === currentUserId);
+    }
+  }, [modalOpen, selectedUser, currentUserId]);
 
   useEffect(() => {
     axios.get(`/api/users/friends/${userId}`)
@@ -58,11 +70,11 @@ const FriendsList = ({ userId }) => {
         </Stack>
       )}
       <UserProfileModal
-      open={modalOpen}
-      user={selectedUser}
-      onClose={() => setModalOpen(false)}
-      currentUserId={userId}
-    />
+        open={modalOpen}
+        user={selectedUser}
+        onClose={() => setModalOpen(false)}
+        currentUserId={currentUserId}
+      />
     </Box>
   );
 };

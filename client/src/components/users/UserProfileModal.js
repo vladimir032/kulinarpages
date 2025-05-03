@@ -31,20 +31,26 @@ export default function UserProfileModal({ open, user, onClose, currentUserId })
     setStatus('pending');
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/users/add', {
+      console.log('[FRIEND REQUEST] currentUserId (отправитель):', currentUserId);
+      console.log('[FRIEND REQUEST] user._id (получатель):', user?._id);
+      console.log('[FRIEND REQUEST] user объект:', user);
+      const response = await axios.post('/api/users/add', {
         userId: currentUserId,
         targetUserId: user._id,
         action: 'friend'
       }, {
         headers: { 'x-auth-token': token }
       });
+      console.log('[FRIEND REQUEST] Ответ сервера:', response?.data);
       setStatus('success');
       alert('Заявка на дружбу отправлена');
     } catch (error) {
       setStatus('error');
+      console.error('[FRIEND REQUEST] Ошибка:', error);
       alert('Ошибка при отправке заявки');
     }
   };
+
 
   if (!user) return null;
 
@@ -55,7 +61,10 @@ export default function UserProfileModal({ open, user, onClose, currentUserId })
           <CloseIcon />
         </IconButton>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-          <Avatar src={user.avatar} sx={{ width: 80, height: 80, mb: 1 }}>
+          <Avatar 
+            src={user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`) : undefined} 
+            sx={{ width: 80, height: 80, mb: 1 }}
+          >
             {user.username[0]?.toUpperCase()}
           </Avatar>
           <Typography variant="h6">{user.username}</Typography>

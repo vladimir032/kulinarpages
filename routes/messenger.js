@@ -9,12 +9,42 @@ const sanitizeHtml = require('sanitize-html');
 
 const checkChatAccess = async (req, res, next) => {
   const chatId = req.params.chatId || req.body.chat;
+  
+  // Если это запрос на количество непрочитанных, сразу пропускаем
+  if (req.path.includes('unread-count')) {
+    return next();
+  }
+  
+  if (!chatId.match(/^[0-9a-fA-F]{24}$/)) {
+    return res.status(400).json({ error: 'Неверный формат chatId' });
+  }
+  
   const chat = await Chat.findById(chatId);
   if (!chat || !chat.participants.includes(req.user.id)) {
     return res.status(403).json({ error: 'Нет доступа к чату' });
   }
+  
   next();
 };
+
+// Количество непрочитанных сообщений
+router.get('/messages/unread-count', auth, async (req, res) => {
+  try {
+    const chats = await Chat.find({ participants: req.user.id });
+    const chatIds = chats.map(chat => chat._id);
+    
+    const count = await Message.countDocuments({
+      chat: { $in: chatIds },
+      read: false,
+      sender: { $ne: req.user.id }
+    });
+    
+    res.json({ count });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 router.get('/chats', auth, async (req, res) => {
   const chats = await Chat.find({ participants: req.user.id })
@@ -55,12 +85,13 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const text = sanitizeHtml(req.body.text, { allowedTags: [], allowedAttributes: {} });
-    const message = await Message.create({
+    let message = await Message.create({
       chat: req.body.chat,
       sender: req.user.id,
       text,
       read: false
     });
+    message = await message.populate('sender', 'username avatar');
     await Chat.findByIdAndUpdate(req.body.chat, { lastMessage: message._id });
     res.json(message);
   }

@@ -192,14 +192,27 @@ export const MessengerProvider = ({ children }) => {
       }
     };
 
+    const fetchUnread = async () => {
+      try {
+        const res = await axios.get('/api/messenger/messages/unread-count', {
+          headers: { 'x-auth-token': token }
+        });
+        dispatch({ type: 'SET_UNREAD', unread: res.data });
+      } catch (error) {
+        console.error('Failed to load unread counts:', error);
+        dispatch({ type: 'SET_UNREAD', unread: {} });
+      }
+    };
+
     fetchChats();
+    fetchUnread();
   }, [token]);
 
   // WebSocket соединение
   useEffect(() => {
     if (!token) return;
 
-    const socket = io('/', { 
+    const socket = io('http://localhost:5000', { 
       auth: { token },
       reconnectionAttempts: 3,
       timeout: 5000
