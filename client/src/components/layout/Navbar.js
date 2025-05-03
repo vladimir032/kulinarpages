@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
   AppBar,
@@ -7,11 +7,36 @@ import {
   Button,
   Container,
   Box,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Divider
 } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Навигационные ссылки
+  const navLinks = [
+    { label: 'Главная', to: '/' },
+    { label: 'Рецепты', to: '/recipes' },
+  ];
+  const userLinks = [
+    { label: 'Мои рецепты', to: '/my-recipes' },
+    { label: 'Холодильник', to: '/my-fridge' },
+    { label: 'Профиль', to: '/profile' },
+    { label: 'Поиск пользователей', to: '/user-search' },
+  ];
+  const guestLinks = [
+    { label: 'Войти', to: '/login' },
+    { label: 'Регистрация', to: '/register' },
+  ];
 
   return (
     <AppBar position="static">
@@ -33,38 +58,42 @@ const Navbar = () => {
             Кулинарные рецепты
           </Typography>
 
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
+          {/* Кнопка меню для мобильных устройств */}
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+            <IconButton
               color="inherit"
-              component={RouterLink}
-              to="/"
+              edge="start"
+              aria-label="menu"
+              onClick={() => setDrawerOpen(true)}
             >
-              Главная
-            </Button>
-            <Button
-              color="inherit"
-              component={RouterLink}
-              to="/recipes"
-            >
-              Рецепты
-            </Button>
-            
+              <MenuIcon />
+            </IconButton>
+          </Box>
+
+          {/* Обычные кнопки навигации для md+ */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
+            {navLinks.map((link) => (
+              <Button
+                key={link.to}
+                color="inherit"
+                component={RouterLink}
+                to={link.to}
+              >
+                {link.label}
+              </Button>
+            ))}
             {user ? (
               <>
-                <Button
-                  color="inherit"
-                  component={RouterLink}
-                  to="/my-recipes"
-                >
-                  Мои рецепты
-                </Button>
-                <Button
-                  color="inherit"
-                  component={RouterLink}
-                  to="/my-fridge"
-                >
-                  Холодильник
-                </Button>
+                {userLinks.map((link) => (
+                  <Button
+                    key={link.to}
+                    color="inherit"
+                    component={RouterLink}
+                    to={link.to}
+                  >
+                    {link.label}
+                  </Button>
+                ))}
                 {isAdmin() && (
                   <Button
                     color="inherit"
@@ -74,46 +103,77 @@ const Navbar = () => {
                     Админ-панель
                   </Button>
                 )}
-                <Button
-                  color="inherit"
-                  onClick={logout}
-                >
-                  Выйти
-                </Button>
-                <Button
-                  color="inherit"
-                  component={RouterLink}
-                  to="/profile"
-                >
-                  Профиль
-                </Button>
-                <Button
-                  color="inherit"
-                  component={RouterLink}
-                  to="/user-search"
-                >
-                  Поиск пользователей
-                </Button>
+                <Button color="inherit" onClick={logout}>Выйти</Button>
               </>
             ) : (
               <>
-                <Button
-                  color="inherit"
-                  component={RouterLink}
-                  to="/login"
-                >
-                  Войти
-                </Button>
-                <Button
-                  color="inherit"
-                  component={RouterLink}
-                  to="/register"
-                >
-                  Регистрация
-                </Button>
+                {guestLinks.map((link) => (
+                  <Button
+                    key={link.to}
+                    color="inherit"
+                    component={RouterLink}
+                    to={link.to}
+                  >
+                    {link.label}
+                  </Button>
+                ))}
               </>
             )}
           </Box>
+
+          {/* Drawer для мобильных устройств */}
+          <Drawer
+            anchor="left"
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            ModalProps={{ keepMounted: true }}
+          >
+            <Box sx={{ width: 250 }} role="presentation" onClick={() => setDrawerOpen(false)}>
+              <List>
+                {navLinks.map((link) => (
+                  <ListItem key={link.to} disablePadding>
+                    <ListItemButton component={RouterLink} to={link.to}>
+                      <ListItemText primary={link.label} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+                <Divider />
+                {user ? (
+                  <>
+                    {userLinks.map((link) => (
+                      <ListItem key={link.to} disablePadding>
+                        <ListItemButton component={RouterLink} to={link.to}>
+                          <ListItemText primary={link.label} />
+                        </ListItemButton>
+                      </ListItem>
+                    ))}
+                    {isAdmin() && (
+                      <ListItem disablePadding>
+                        <ListItemButton component={RouterLink} to="/admin">
+                          <ListItemText primary="Админ-панель" />
+                        </ListItemButton>
+                      </ListItem>
+                    )}
+                    <ListItem disablePadding>
+                      <ListItemButton onClick={logout}>
+                        <ListItemText primary="Выйти" />
+                      </ListItemButton>
+                    </ListItem>
+                  </>
+                ) : (
+                  <>
+                    {guestLinks.map((link) => (
+                      <ListItem key={link.to} disablePadding>
+                        <ListItemButton component={RouterLink} to={link.to}>
+                          <ListItemText primary={link.label} />
+                        </ListItemButton>
+                      </ListItem>
+                    ))}
+                  </>
+                )}
+              </List>
+            </Box>
+          </Drawer>
         </Toolbar>
       </Container>
     </AppBar>

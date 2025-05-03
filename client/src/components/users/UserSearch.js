@@ -20,9 +20,50 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useMessenger } from '../../context/MessengerContext';
 
 // Модальное окно профиля пользователя (упрощённая версия)
-function UserProfileModal({ open, user, onClose }) {
+function UserProfileModal({ open, user, onClose, currentUserId }) {
+  const [status, setStatus] = useState('idle'); // idle, pending, success, error
   const { openChat } = useMessenger();
+
+  const handleSubscribe = async () => {
+    setStatus('pending');
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('/api/users/add', {
+        userId: currentUserId,
+        targetUserId: user._id,
+        action: 'follow'
+      }, {
+        headers: { 'x-auth-token': token }
+      });
+      setStatus('success');
+      alert('Вы успешно подписались!');
+    } catch (error) {
+      setStatus('error');
+      alert('Ошибка при подписке');
+    }
+  };
+  
+  const handleSendFriendRequest = async () => {
+    setStatus('pending');
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('/api/users/add', {
+        userId: currentUserId,
+        targetUserId: user._id,
+        action: 'friend'
+      }, {
+        headers: { 'x-auth-token': token }
+      });
+      setStatus('success');
+      alert('Заявка на дружбу отправлена');
+    } catch (error) {
+      setStatus('error');
+      alert('Ошибка при отправке заявки');
+    }
+  };
+
   if (!user) return null;
+
   return (
     <Modal open={open} onClose={onClose}>
       <Paper sx={{ p: 4, maxWidth: 400, mx: 'auto', mt: 8, position: 'relative' }}>
@@ -46,11 +87,11 @@ function UserProfileModal({ open, user, onClose }) {
           {user.about && <Typography sx={{ mt: 1 }}>{user.about}</Typography>}
           {user.hobbies && <Typography sx={{ mt: 1 }}>{user.hobbies}</Typography>}
           {user.favoriteRecipes && <Typography sx={{ mt: 1 }}>{user.favoriteRecipes}</Typography>}
-
         </Box>
+
         <Button
           variant="contained"
-          color="primary"
+          color="success"
           fullWidth
           sx={{ mb: 1 }}
           onClick={async () => {
@@ -65,34 +106,50 @@ function UserProfileModal({ open, user, onClose }) {
         >
           Написать
         </Button>
-        <Button variant="outlined" fullWidth onClick={onClose}>Закрыть</Button>
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          sx={{ mb: 1 }}
+          onClick={handleSubscribe}
+          disabled={status === 'pending'}
+        >
+          {status === 'pending' ? 'Подписка...' : 'Подписаться'}
+        </Button>
+
+        <Button
+          variant="contained"
+          color="secondary"
+          fullWidth
+          sx={{ mb: 1 }}
+          onClick={handleSendFriendRequest}
+          disabled={status === 'pending'}
+        >
+          {status === 'pending' ? 'Отправка заявки...' : 'Отправить заявку в друзья'}
+        </Button>
+
+        <Button variant="outlined" fullWidth onClick={onClose}>
+          Закрыть
+        </Button>
       </Paper>
     </Modal>
   );
 }
 
+function formatDate(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleString();
+}
+
 export default function UserSearch({ currentUserId, onUserSelect }) {
-  const { openChat, setMessengerOpen, setActiveTab } = useMessenger();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [history, setHistory] = useState([]); // [{ user, timestamp }]
+  const [history, setHistory] = useState([]);
 
-  // Форматировать дату/время (МСК, DD.MM.YYYY HH:mm)
-  const formatDate = (date) => {
-    return new Date(date).toLocaleString('ru-RU', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-      hour12: false,
-      timeZone: 'Europe/Moscow'
-    });
-  };
-
-  // Debounced search function
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce(async (searchValue) => {
       if (!searchValue.trim()) {
@@ -134,16 +191,13 @@ export default function UserSearch({ currentUserId, onUserSelect }) {
     setQuery(e.target.value);
   };
 
-
-
   const handleUserClick = (user) => {
     setSelectedUser(user);
     setModalOpen(true);
-    // История: если пользователь уже есть, обновить время и переместить вверх
-    setHistory(prev => {
-      const filtered = prev.filter(item => item.user._id !== user._id);
-      return [{ user, timestamp: Date.now() }, ...filtered];
-    });
+    setHistory(prev => [
+      { user, timestamp: Date.now() },
+      ...prev.filter(entry => entry.user._id !== user._id)
+    ]);
     if (onUserSelect) onUserSelect(user);
   };
 
@@ -161,7 +215,7 @@ export default function UserSearch({ currentUserId, onUserSelect }) {
         fullWidth
         sx={{ mb: 2 }}
       />
-      {/* История поиска */}
+
       {history.length > 0 && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" sx={{ mb: 1 }}>История поиска</Typography>
@@ -190,38 +244,28 @@ export default function UserSearch({ currentUserId, onUserSelect }) {
           </List>
         </Box>
       )}
-      {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-          <CircularProgress size={32} />
-        </Box>
-      )}
-      {error && !loading && (
-        <Typography color="error" sx={{ mb: 2, textAlign: 'center' }}>{error}</Typography>
-      )}
-      {!loading && !error && results.length > 0 && (
-        <List>
-          {results.map(user => (
-            <ListItem
-              key={user._id}
-              button
-              onClick={() => handleUserClick(user)}
-              sx={{ borderBottom: '1px solid #eee', cursor: 'pointer', '&:hover': { bgcolor: '#f5f5f5' } }}
-              disabled={user._id === currentUserId}
-            >
-              <ListItemAvatar>
-                <Avatar src={user.avatar}>
-                  {user.username[0]?.toUpperCase()}
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={user.username}
-                secondary={user.email}
-              />
-            </ListItem>
-          ))}
-        </List>
-      )}
-      <UserProfileModal open={modalOpen} user={selectedUser} onClose={handleModalClose} />
+
+      {loading && <CircularProgress size={32} />}
+      {error && !loading && <Typography color="error">{error}</Typography>}
+      <List>
+        {results.map(user => (
+          <ListItem key={user._id} button onClick={() => handleUserClick(user)}>
+            <ListItemAvatar>
+              <Avatar src={user.avatar}>
+                {user.username[0]?.toUpperCase()}
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText primary={user.username} secondary={user.email} />
+          </ListItem>
+        ))}
+      </List>
+
+      <UserProfileModal
+        open={modalOpen}
+        user={selectedUser}
+        onClose={handleModalClose}
+        currentUserId={currentUserId}
+      />
     </Box>
   );
 }

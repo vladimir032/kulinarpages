@@ -117,31 +117,33 @@ const Home = () => {
           {loading ? (
             // Показываем скелетоны во время загрузки
             Array.from(new Array(6)).map((_, index) => (
-              <Grid item key={index} xs={12} sm={6} md={4}>
+              <Grid item key={index} xs={6} sm={6} md={4}>
                 <PopularRecipeSkeleton />
               </Grid>
             ))
           ) : (
             popularRecipes.map((recipe) => (
-              <Grid item key={recipe._id} xs={12} sm={6} md={4}>
+              <Grid item key={recipe._id} xs={6} sm={6} md={4}>
                 <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <CardMedia
                     component="img"
-                    sx={{ height: 200 }}
+                    sx={{ height: 150 }}
                     image={recipe.imageUrl}
                     alt={recipe.title}
                   />
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography gutterBottom variant="h5" component="h2">
+                  <CardContent sx={{ flexGrow: 1, p: 1 }}>
+                    <Typography gutterBottom variant="h6" component="h2" sx={{ fontSize: '1rem' }}>
                       {recipe.title}
                     </Typography>
-                    <Typography>
-                      {recipe.description.substring(0, 100)}...
+                    <Typography sx={{ fontSize: '0.9rem' }}>
+                      {recipe.description.substring(0, 80)}...
                     </Typography>
                     <Button
                       component={RouterLink}
                       to={`/recipes/${recipe._id}`}
-                      sx={{ mt: 2 }}
+                      sx={{ mt: 1, fontSize: '0.9rem' }}
+                      size="small"
+                      variant="outlined"
                     >
                       Посмотреть
                     </Button>

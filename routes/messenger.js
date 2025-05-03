@@ -7,7 +7,6 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const sanitizeHtml = require('sanitize-html');
 
-// Middleware: Проверка прав доступа к чату
 const checkChatAccess = async (req, res, next) => {
   const chatId = req.params.chatId || req.body.chat;
   const chat = await Chat.findById(chatId);

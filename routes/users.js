@@ -26,13 +26,9 @@ router.get('/saved-recipes', auth, async (req, res) => {
 router.get('/profile', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    // Get all recipes authored by this user
     const userRecipes = await Recipe.find({ author: req.user.id });
     const recipesCount = userRecipes.length;
-    // Sum all views for user's recipes
     const viewsCount = userRecipes.reduce((acc, r) => acc + (r.views || 0), 0);
-    // Count likes (saved by others) for user's recipes
-    // Option 1: If using likedBy field
     let likesCount = 0;
     for (const recipe of userRecipes) {
       if (Array.isArray(recipe.likedBy)) {
