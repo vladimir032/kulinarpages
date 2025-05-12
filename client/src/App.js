@@ -21,6 +21,7 @@ import Register from './components/auth/Register';
 import PrivateRoute from './components/routing/PrivateRoute';
 import AdminRoute from './components/routing/AdminRoute';
 import AdminPanel from './components/pages/AdminPanel';
+import Footer from './components/layout/Footer';
 import { FriendsListWrapper, FollowersListWrapper, FriendRequestsWrapper } from './components/friends/FriendsWrapper';
 
 const theme = createTheme({
@@ -41,10 +42,11 @@ function App() {
       <AuthProvider>
         <MessengerProvider>
           <Router>
-            <div className="App">
+            <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+              <Navbar />
               <MessengerTrigger />
-            <Navbar />
-            <Routes>
+              <main style={{ flex: 1 }}>
+                <Routes>
               <Route
                 path="/friends"
                 element={
@@ -109,6 +111,8 @@ function App() {
                 }
               />
             </Routes>
+            </main>
+            <Footer />
           </div>
         </Router>
       </MessengerProvider>

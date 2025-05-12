@@ -50,9 +50,21 @@ export const AuthProvider = ({ children }) => {
       await loadUser(res.data.token);
       return true;
     } catch (err) {
-      throw err.response.data.msg;
+      if (err.response && err.response.data) {
+        if (err.response.data.error) {
+          throw new Error(err.response.data.error);
+        }
+        if (err.response.data.errors && err.response.data.errors.length > 0) {
+          throw new Error(err.response.data.errors[0]);
+        }
+        if (err.response.data.msg) {
+          throw new Error(err.response.data.msg);
+        }
+      }
+      throw new Error("Ошибка регистрации");
     }
   };
+
 
   const logout = () => {
     localStorage.removeItem('token');

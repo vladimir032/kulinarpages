@@ -1,15 +1,55 @@
-import React, { useState } from 'react';
-import { Modal, Paper, IconButton, Box, Avatar, Typography, Button} from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Modal, Paper, IconButton, Box, Avatar, Typography, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import { useMessenger } from '../../context/MessengerContext';
 
 export default function UserProfileModal({ open, user, onClose, currentUserId }) {
-  const [status, setStatus] = useState('idle'); 
+  const [subscribeStatus, setSubscribeStatus] = useState('idle');
+  const [friendRequestStatus, setFriendRequestStatus] = useState('idle');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [friendStatus, setFriendStatus] = useState('none'); // 'none' | 'pending' | 'friends'
   const { openChat } = useMessenger();
 
+  useEffect(() => {
+    if (open && user) {
+      // Сбрасываем статусы при открытии модального окна
+      setSubscribeStatus('idle');
+      setFriendRequestStatus('idle');
+      checkCurrentStatus();
+    }
+  }, [open, user]);
+
+  const checkCurrentStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const followersRes = await axios.get(`/api/friendsAndFollowers/followers/${user._id}`, {
+        headers: { 'x-auth-token': token }
+      });
+      setIsSubscribed(followersRes.data.some(f => f._id === currentUserId));
+
+      const friendsRes = await axios.get(`/api/friendsAndFollowers/friends/${currentUserId}`, {
+        headers: { 'x-auth-token': token }
+      });
+      const requestsRes = await axios.get(`/api/friendsAndFollowers/friend-requests/${currentUserId}`, {
+        headers: { 'x-auth-token': token }
+      });
+
+      if (friendsRes.data.some(f => f._id === user._id)) {
+        setFriendStatus('accepted');
+      } else if (requestsRes.data.some(r => r.userId === user._id)) {
+        setFriendStatus('pending');
+      } else {
+        setFriendStatus('none');
+      }
+    } catch (error) {
+      console.error('Ошибка проверки статуса:', error);
+    }
+  };
+
   const handleSubscribe = async () => {
-    setStatus('pending');
+    setSubscribeStatus('pending');
     try {
       const token = localStorage.getItem('token');
       await axios.post('/api/users/add', {
@@ -19,38 +59,32 @@ export default function UserProfileModal({ open, user, onClose, currentUserId })
       }, {
         headers: { 'x-auth-token': token }
       });
-      setStatus('success');
-      alert('Вы успешно подписались!');
+      await checkCurrentStatus();
+      setIsSubscribed(true);
+      setSubscribeStatus('accepted');
     } catch (error) {
-      setStatus('error');
-      alert('Ошибка при подписке');
+      setSubscribeStatus('error');
     }
   };
-
+  
   const handleSendFriendRequest = async () => {
-    setStatus('pending');
+    setFriendRequestStatus('pending');
     try {
       const token = localStorage.getItem('token');
-      console.log('[FRIEND REQUEST] currentUserId (отправитель):', currentUserId);
-      console.log('[FRIEND REQUEST] user._id (получатель):', user?._id);
-      console.log('[FRIEND REQUEST] user объект:', user);
-      const response = await axios.post('/api/users/add', {
+      await axios.post('/api/users/add', {
         userId: currentUserId,
         targetUserId: user._id,
         action: 'friend'
       }, {
         headers: { 'x-auth-token': token }
       });
-      console.log('[FRIEND REQUEST] Ответ сервера:', response?.data);
-      setStatus('success');
-      alert('Заявка на дружбу отправлена');
+      await checkCurrentStatus();
+      setFriendStatus('pending');
+      setFriendRequestStatus('accepted');
     } catch (error) {
-      setStatus('error');
-      console.error('[FRIEND REQUEST] Ошибка:', error);
-      alert('Ошибка при отправке заявки');
+      setFriendRequestStatus('error');
     }
   };
-
 
   if (!user) return null;
 
@@ -60,57 +94,54 @@ export default function UserProfileModal({ open, user, onClose, currentUserId })
         <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
           <CloseIcon />
         </IconButton>
+
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-          <Avatar 
-            src={user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`) : undefined} 
-            sx={{ width: 80, height: 80, mb: 1 }}
-          >
+          <Avatar src={user.avatar} sx={{ width: 80, height: 80, mb: 1 }}>
             {user.username[0]?.toUpperCase()}
           </Avatar>
           <Typography variant="h6">{user.username}</Typography>
           <Typography color="text.secondary">{user.email}</Typography>
-          {user.status && <Typography sx={{ mt: 1 }}>{user.status}</Typography>}
         </Box>
 
-                <Button
-                  variant="contained"
-                  color="success"
-                  fullWidth
-                  sx={{ mb: 1 }}
-                  onClick={async () => {
-                    await openChat(user._id);
-                    if (typeof window !== 'undefined') {
-                      // открваем MessengerModal
-                      const evt = new CustomEvent('open-messenger');
-                      window.dispatchEvent(evt);
-                    }
-                    onClose();
-                  }}
-                >
-                  Написать
-                </Button>
         <Button
+          variant="contained"
+          color="accepted"
+          fullWidth
+          sx={{ mb: 1 }}
+          onClick={async () => {
+            await openChat(user._id);
+            window.dispatchEvent(new CustomEvent('open-messenger'));
+            onClose();
+          }}
+        >
+          Написать
+        </Button>
+
+        <Button
+          onClick={handleSubscribe}
+          disabled={isSubscribed || subscribeStatus === 'pending'}
           variant="contained"
           color="primary"
-          fullWidth
-          sx={{ mb: 1 }}
-          onClick={handleSubscribe}
-          disabled={status === 'pending'}
         >
-          {status === 'pending' ? 'Подписка...' : 'Подписаться'}
+          {isSubscribed
+            ? 'Вы подписаны'
+            : subscribeStatus === 'pending'
+              ? 'Подписка...'
+              : 'Подписаться'}
         </Button>
+
         <Button
+          onClick={handleSendFriendRequest}
+          disabled={friendStatus === 'pending' || friendStatus === 'accepted' || friendRequestStatus === 'pending'}
           variant="contained"
           color="secondary"
-          fullWidth
-          sx={{ mb: 1 }}
-          onClick={handleSendFriendRequest}
-          disabled={status === 'pending'}
+          sx={{ ml: 2 }}
         >
-          {status === 'pending' ? 'Отправка заявки...' : 'Отправить заявку в друзья'}
-        </Button>
-        <Button variant="outlined" fullWidth onClick={onClose} sx={{ mt: 2 }}>
-          Закрыть
+          {friendStatus === 'accepted'
+            ? 'Уже в друзьях'
+            : friendStatus === 'pending' || friendRequestStatus === 'pending'
+              ? 'Заявка отправлена'
+              : 'Отправить заявку в друзья'}
         </Button>
       </Paper>
     </Modal>

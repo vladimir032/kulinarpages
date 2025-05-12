@@ -179,7 +179,10 @@ const AdminPanelMain = () => {
       await axios.delete(`/api/recipes/${id}`, config);
       setRecipes(recipes.filter(r => r._id !== id));
     } catch (err) {
-      alert('Ошибка при удалении рецепта');
+      const message = err.response && err.response.data && err.response.data.msg
+        ? err.response.data.msg
+        : 'Ошибка при удалении рецепта';
+      alert(message);
     }
   };
 

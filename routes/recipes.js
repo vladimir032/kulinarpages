@@ -122,7 +122,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
-    await recipe.remove();
+    await Recipe.findByIdAndDelete(req.params.id);
     res.json({ msg: 'Recipe removed' });
   } catch (err) {
     console.error(err.message);

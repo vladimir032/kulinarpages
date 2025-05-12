@@ -92,7 +92,7 @@ const Home = () => {
           color="text.primary"
           gutterBottom
         >
-          Кулинарные рецепты для Вас и Вашей семьи
+          Кулинария и рецепты для Вас!
         </Typography>
         <Typography variant="h5" color="text.secondary" paragraph>
           Откройте для себя и своей семьи лучшие блюда!

@@ -7,6 +7,7 @@ const User = require('../models/User');
 const Friend = require('../models/friend');
 const Follower = require('../models/Follower');
 const LoginRecord = require('../models/LoginRecord');
+const { body, validationResult } = require('express-validator');
 
 const getClientIp = (req) => {
   let ip = req.ip || 
@@ -39,7 +40,6 @@ const generateToken = (userId, res) => {
   );
 };
 
-// Функция для записи истории входа
 const recordLogin = async (user, req) => {
   const ipAddress = getClientIp(req);
   const loginRecord = new LoginRecord({
@@ -55,30 +55,66 @@ const recordLogin = async (user, req) => {
 // @route   POST api/auth/register
 // @desc    Register user
 // @access  Public
-router.post('/register', async (req, res) => {
+router.post('/register', [
+  body('email').isEmail().withMessage('Некорректный email'),
+  body('username').isLength({ min: 3 }).withMessage('Логин слишком короткий!'),
+  body('password').isLength({ min: 8 }).withMessage('Пароль слишком короткий! Учтите требования!'),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array().map(e => e.msg) });
+  }
   try {
     const { username, email, password } = req.body;
-
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+    const existingUser = await User.findOne({ 
+      $or: [{ email }, { username }] 
+    });
+    if (existingUser) {
+      const field = existingUser.email === email ? 'Email' : 'Логин';
+      return res.status(400).json({ 
+        success: false,
+        error: `${field} уже используется!` 
+      });
     }
-
-    user = new User({
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const user = new User({
       username,
       email,
-      password,
-      role: 'user'
+      password: hashedPassword,
+      role: 'user',
     });
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
     await user.save();
-
+    const generateToken = (userId) => {
+      const payload = { user: { id: userId } };
+      return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
+    };
+    const token = generateToken(user.id);
+    res.status(201).json({
+      success: true,
+      message: 'Регистрация успешна',
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      },
+      token
+    });
     generateToken(user.id, res);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    if (err.name === 'ValidationError') {
+      const errors = Object.values(err.errors).map(e => e.message);
+      return res.status(400).json({
+        success: false,
+        errors
+      });
+    }
+    res.status(500).json({
+      success: false,
+      error: 'Ошибка сервера'
+    });
   }
 });
 

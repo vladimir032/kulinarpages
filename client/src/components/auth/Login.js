@@ -37,6 +37,7 @@ const Login = () => {
   };
 
   return (
+    <div className="page-container">
     <Container component="main" maxWidth="xs">
       <Paper elevation={6} sx={{ mt: 8, p: 4 }}>
         <Typography component="h1" variant="h5" align="center">
@@ -84,6 +85,7 @@ const Login = () => {
         </Box>
       </Paper>
     </Container>
+    </div>
   );
 };
 
