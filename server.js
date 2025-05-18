@@ -16,7 +16,6 @@ dotenv.config();
 const app = express();
 app.set('trust proxy', 1);
 connectDB();
-//защита
 app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
 }));
@@ -40,10 +39,8 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/statistics', require('./routes/statistics')); 
 app.use('/api/admin-stats', require('./routes/adminStats')); 
 
-// Настройка Swagger документации
 setupSwagger(app);
 
-// Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
   app.get('*', (req, res) => {

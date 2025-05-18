@@ -48,7 +48,6 @@ export default function Profile() {
       });
       setPrivacy(data.privacySettings || {});
     } catch (e) {
-      // handle error
     }
     setLoading(false);
   };
@@ -92,7 +91,6 @@ export default function Profile() {
       setProfile(data);
       setEditMode(false);
     } catch (e) {
-      // handle error
     }
     setSaving(false);
   };

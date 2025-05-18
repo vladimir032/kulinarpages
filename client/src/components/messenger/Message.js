@@ -12,12 +12,9 @@ const Message = ({ message, showDate }) => {
     return null;
   }
 
-  // Приведение ID к строке для стабильного сравнения
   const senderId = message.sender._id?.toString();
   const userId = user._id?.toString();
   const isMe = senderId === userId;
-
-  // Проверка формата даты
   const messageDate = new Date(message.createdAt);
   const isValidDate = !isNaN(messageDate.getTime());
 

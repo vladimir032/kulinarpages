@@ -53,12 +53,10 @@ router.get('/new-recipes', auth, isAdmin, async (req, res) => {
   }
 });
 
-
 router.get('/top-users', auth, isAdmin, async (req, res) => {
   try {
     const users = await User.find();
     const recipes = await Recipe.find();
-    // Считаем активность: количество сохранённых рецептов (лайков), количество просмотров всех их рецептов, количество созданных рецептов
     const userStats = users.map(user => {
       const recipesByUser = recipes.filter(r => r.author && r.author.toString() === user._id.toString());
       const viewsCount = recipesByUser.reduce((acc, r) => acc + (r.views || 0), 0);
@@ -79,12 +77,9 @@ router.get('/top-users', auth, isAdmin, async (req, res) => {
   }
 });
 
-// 3. Самые популярные рецепты (по лайкам, просмотрам, комментариям)
 router.get('/top-recipes', auth, isAdmin, async (req, res) => {
   try {
-    // Получаем все рецепты
     const recipes = await Recipe.find();
-    // Для каждого рецепта считаем лайки (savedRecipes)
     const users = await User.find({}, 'savedRecipes');
     const recipeLikes = {};
     users.forEach(user => {
@@ -92,7 +87,6 @@ router.get('/top-recipes', auth, isAdmin, async (req, res) => {
         recipeLikes[recipeId] = (recipeLikes[recipeId] || 0) + 1;
       });
     });
-    // Формируем массив рецептов с лайками
     const recipesWithLikes = recipes.map(r => ({
       _id: r._id,
       title: r.title,
@@ -101,7 +95,6 @@ router.get('/top-recipes', auth, isAdmin, async (req, res) => {
       category: r.category,
       likes: recipeLikes[r._id.toString()] || 0
     }));
-    // Сортируем
     recipesWithLikes.sort((a, b) => b.likes - a.likes || b.views - a.views || b.commentsCount - a.commentsCount);
     res.json(recipesWithLikes.slice(0, 20));
   } catch (err) {
@@ -110,18 +103,13 @@ router.get('/top-recipes', auth, isAdmin, async (req, res) => {
   }
 });
 
-// 4. Динамика лайков по дням/часам (savedRecipes)
 router.get('/likes-dynamics', auth, isAdmin, async (req, res) => {
   try {
     const byHour = req.query.by === 'hour';
-    // Получаем всех пользователей и их savedRecipes
     const users = await User.find({}, 'savedRecipes');
-    // Получаем все рецепты для поиска createdAt
     const recipes = await Recipe.find({}, 'createdAt');
-    // Мапа recipeId -> createdAt
     const recipeCreatedAt = {};
     recipes.forEach(r => { recipeCreatedAt[r._id.toString()] = r.createdAt; });
-    // Считаем лайки по дате создания рецепта
     const likeDates = {};
     users.forEach(user => {
       user.savedRecipes.forEach(recipeId => {
@@ -148,9 +136,7 @@ router.get('/likes-dynamics', auth, isAdmin, async (req, res) => {
 router.get('/views-dynamics', auth, isAdmin, async (req, res) => {
   try {
     const byHour = req.query.by === 'hour';
-    // Получаем все рецепты
     const recipes = await Recipe.find({}, 'createdAt views');
-    // Группируем просмотры по дате создания рецепта
     const viewsByPeriod = {};
     recipes.forEach(r => {
       let date = null;
@@ -178,9 +164,7 @@ router.get('/views-dynamics', auth, isAdmin, async (req, res) => {
 router.get('/categories', auth, isAdmin, async (req, res) => {
   try {
     const allowedCategories = ['Салаты', 'Десерты', 'Супы', 'Пиццы', 'Напитки', 'Горячее'];
-    // Получаем все рецепты
     const recipes = await Recipe.find();
-    // Получаем все savedRecipes для лайков
     const users = await User.find({}, 'savedRecipes');
     const recipeLikes = {};
     users.forEach(user => {
@@ -188,7 +172,6 @@ router.get('/categories', auth, isAdmin, async (req, res) => {
         recipeLikes[recipeId] = (recipeLikes[recipeId] || 0) + 1;
       });
     });
-    // Группируем по категориям
     const categories = allowedCategories.map(cat => {
       const catRecipes = recipes.filter(r => r.category === cat);
       const count = catRecipes.length;
@@ -206,7 +189,6 @@ router.get('/categories', auth, isAdmin, async (req, res) => {
 // 6. Самые активные IP
 router.get('/top-ips', auth, isAdmin, async (req, res) => {
   try {
-    // Берем из LoginRecord
     const ips = await LoginRecord.aggregate([
       { $group: {
         _id: "$ip",

@@ -6,7 +6,6 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -64,7 +63,6 @@ export const AuthProvider = ({ children }) => {
       throw new Error("Ошибка регистрации");
     }
   };
-
 
   const logout = () => {
     localStorage.removeItem('token');

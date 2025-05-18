@@ -8,12 +8,11 @@ export default function UserProfileModal({ open, user, onClose, currentUserId })
   const [subscribeStatus, setSubscribeStatus] = useState('idle');
   const [friendRequestStatus, setFriendRequestStatus] = useState('idle');
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [friendStatus, setFriendStatus] = useState('none'); // 'none' | 'pending' | 'friends'
+  const [friendStatus, setFriendStatus] = useState('none');
   const { openChat } = useMessenger();
 
   useEffect(() => {
     if (open && user) {
-      // Сбрасываем статусы при открытии модального окна
       setSubscribeStatus('idle');
       setFriendRequestStatus('idle');
       checkCurrentStatus();

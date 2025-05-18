@@ -27,18 +27,13 @@ function initSockets(server) {
   });
 
   io.on('connection', (socket) => {
-    // Статус онлайн
     io.emit('online', Array.from(onlineUsers.keys()));
-
-    // Подписка на чат
     socket.on('join', (chatId) => {
       socket.join(chatId);
     });
     socket.on('leave', (chatId) => {
       socket.leave(chatId);
     });
-
-    // Сообщение
     socket.on('message', async ({ chatId, text }) => {
       if (!chatId || !text || !socket.userId) return;
       const message = await Message.create({
@@ -50,8 +45,6 @@ function initSockets(server) {
       await Chat.findByIdAndUpdate(chatId, { lastMessage: message._id });
       io.to(chatId).emit('message', message);
     });
-
-    // Индикатор набора
     socket.on('typing', ({ chatId, isTyping }) => {
       if (!chatId) return;
       if (!typingUsers.has(chatId)) typingUsers.set(chatId, new Set());
@@ -64,11 +57,9 @@ function initSockets(server) {
       io.to(chatId).emit('typing', Array.from(set));
     });
 
-    // Отключение
     socket.on('disconnect', () => {
       onlineUsers.delete(socket.userId);
       io.emit('online', Array.from(onlineUsers.keys()));
-      // Убираем из typing
       for (const set of typingUsers.values()) {
         set.delete(socket.userId);
       }

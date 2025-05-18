@@ -78,9 +78,6 @@ const RecipeDetail = () => {
     }
   };
 
-
-
-
   if (!recipe) {
     return <Typography>Loading...</Typography>;
   }

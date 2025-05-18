@@ -13,7 +13,6 @@ const MyFridge = () => {
   const [selectedShelf, setSelectedShelf] = useState('shelf1');
   const navigate = useNavigate();
 
-  // Load ingredients from sessionStorage on component mount
   useEffect(() => {
     const savedIngredients = sessionStorage.getItem('myFridgeIngredients');
     if (savedIngredients) {
@@ -21,7 +20,6 @@ const MyFridge = () => {
     }
   }, []);
 
-  // Save ingredients to sessionStorage whenever they change
   useEffect(() => {
     sessionStorage.setItem('myFridgeIngredients', JSON.stringify(ingredients));
   }, [ingredients]);
@@ -38,7 +36,7 @@ const MyFridge = () => {
         .filter(ing => ing.length > 0);
 
       const newIngredients = ingredientsList.map(name => ({
-        id: Date.now() + Math.random(), // ensure unique IDs even for simultaneous additions
+        id: Date.now() + Math.random(),
         name,
         shelf: selectedShelf
       }));

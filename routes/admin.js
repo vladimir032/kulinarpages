@@ -4,7 +4,6 @@ const auth = require('../middleware/auth');
 const User = require('../models/User');
 const Recipe = require('../models/Recipe');
 
-// Middleware to check if user is admin
 const isAdmin = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Friend = require('../models/friend');
+const Friend = require('../models/Friend');
 const Follower = require('../models/Follower');
 const auth = require('../middleware/auth');
 
@@ -34,7 +34,6 @@ router.post('/add', auth, async (req, res) => {
           return res.status(400).json({ message: 'Вы уже друзья.' });
         }
       }
-      //логгируем создание дружбы
       console.log('Создаём Friend:', { user: targetUserId, friend: userId });
       const newFriendRequest = new Friend({
         user: userId,
@@ -115,11 +114,10 @@ router.post('/friend/reject', async (req, res) => {
 router.get('/friend-requests/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
-    // Change to find requests where friend=userId (requests received by user)
     const requests = await Friend.find({ friend: userId, status: 'pending' })
       .populate('user', 'username avatar status');
     const requestList = requests.map(req => ({
-      userId: req.user._id, // sender id
+      userId: req.user._id, 
       username: req.user.username,
       avatar: req.user.avatar,
       status: req.user.status
@@ -133,7 +131,6 @@ router.get('/friend-requests/:userId', async (req, res) => {
 
 router.get('/friends/:userId', async (req, res) => {
   const { userId } = req.params;
-
   try {
     const friends = await Friend.find({
       $or: [
@@ -141,7 +138,6 @@ router.get('/friends/:userId', async (req, res) => {
         { friend: userId, status: 'accepted' }
       ]
     }).populate('user friend', 'username avatar status');
-
     const friendList = friends.map(friend => {
       const friendUser = friend.user._id.toString() === userId ? friend.friend : friend.user;
       return {
@@ -161,17 +157,14 @@ router.get('/friends/:userId', async (req, res) => {
 
 router.get('/followers/:userId', async (req, res) => {
   const { userId } = req.params;
-
   try {
     const followers = await Follower.find({ user: userId }).populate('follower', 'username avatar status');
-
     const followerList = followers.map(follower => ({
       _id: follower.follower._id,
       username: follower.follower.username,
       avatar: follower.follower.avatar,
       status: follower.follower.status
     }));
-
     res.status(200).json(followerList);
   } catch (error) {
     console.error(error);

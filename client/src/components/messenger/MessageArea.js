@@ -7,16 +7,10 @@ import PropTypes from 'prop-types';
 const MessageArea = () => {
   const { messages = [], currentChat, chats = [], loadingMessages, typingUsers = [] } = useMessenger();
   const bottomRef = useRef();
-
-  // Находим текущий чат с защитной проверкой
   const chat = chats?.find(c => c._id === currentChat) || null;
-
-  // Автопрокрутка к новым сообщениям
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  // Защитные проверки данных
   const safeMessages = Array.isArray(messages) ? messages : [];
   const safeTypingUsers = Array.isArray(typingUsers) ? typingUsers : [];
 

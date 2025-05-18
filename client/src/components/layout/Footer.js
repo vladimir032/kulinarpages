@@ -21,7 +21,7 @@ const Footer = () => (
       </div>
     </div>
     <div className="footer__bottom">
-      <span>© {new Date().getFullYear()} KulinarPages. Все права защищены.</span>
+      <span>© {new Date().getFullYear()} Кулинария и рецепты для Вас. Все права защищены.</span>
     </div>
   </footer>
 );

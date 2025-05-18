@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
-const Friend = require('../models/friend');
+const Friend = require('../models/Friend');
 const Follower = require('../models/Follower');
 const LoginRecord = require('../models/LoginRecord');
 const { body, validationResult } = require('express-validator');
@@ -17,7 +17,7 @@ const getClientIp = (req) => {
           (req.connection.socket ? req.connection.socket.remoteAddress : null);
 
   if (ip && ip.includes('::ffff:')) {
-    ip = ip.split(':').pop(); // Извлекаем IPv4 часть из IPv6
+    ip = ip.split(':').pop(); // извлечение ip4 из ip6
   }
   
   if (ip && ip.includes(',')) {
@@ -52,9 +52,6 @@ const recordLogin = async (user, req) => {
   await loginRecord.save();
 };
 
-// @route   POST api/auth/register
-// @desc    Register user
-// @access  Public
 router.post('/register', [
   body('email').isEmail().withMessage('Некорректный email'),
   body('username').isLength({ min: 3 }).withMessage('Логин слишком короткий!'),
@@ -118,9 +115,6 @@ router.post('/register', [
   }
 });
 
-// @route   POST api/auth/login
-// @desc    Authenticate user & get token
-// @access  Public
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -155,9 +149,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// @route   GET api/auth/user
-// @desc    Get logged in user
-// @access  Private
 router.get('/user', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -168,9 +159,6 @@ router.get('/user', auth, async (req, res) => {
   }
 });
 
-// @route   GET api/auth/login-history
-// @desc    Get user login history
-// @access  Private
 router.get('/login-history', auth, async (req, res) => {
   try {
     const history = await LoginRecord.find({ userId: req.user.id })

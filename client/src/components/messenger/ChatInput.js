@@ -26,7 +26,7 @@ export default function ChatInput() {
 
   const handleEmojiClick = (emojiData) => {
     setText(prevText => prevText + emojiData.emoji);
-    inputRef.current.focus(); // Возвращаем фокус в поле ввода
+    inputRef.current.focus();
   };
 
   const openEmojiPicker = (event) => {

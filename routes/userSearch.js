@@ -3,7 +3,6 @@ const router = express.Router();
 const { body, query, validationResult } = require('express-validator');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
-
 const validateSearch = [
   query('query').isString().trim().notEmpty().withMessage('Запрос обязателен'),
   query('limit').optional().isInt({ min: 1, max: 50 }).toInt(),
@@ -17,7 +16,6 @@ const validateSearch = [
   }
 ];
 
-// GET /api/users/search
 router.get('/search', auth, validateSearch, async (req, res, next) => {
   try {
     const { query: search, limit = 10, page = 1 } = req.query;

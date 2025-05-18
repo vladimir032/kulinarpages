@@ -79,7 +79,6 @@ const AdminPanelMain = () => {
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
-  // Ingredients handlers
   const handleIngredientChange = (index, field, value) => {
     const newIngredients = [...form.ingredients];
     newIngredients[index][field] = value;
@@ -95,7 +94,6 @@ const AdminPanelMain = () => {
     setForm(prev => ({ ...prev, ingredients: newIngredients }));
   };
 
-  // Instructions handlers
   const handleInstructionChange = (index, value) => {
     const newInstructions = [...form.instructions];
     newInstructions[index] = value;

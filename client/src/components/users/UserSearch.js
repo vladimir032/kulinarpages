@@ -29,7 +29,6 @@ function UserProfileModal({ open, user, onClose, currentUserId }) {
 
   useEffect(() => {
     if (open && user) {
-      // Сбрасываем статусы при открытии модального окна
       setSubscribeStatus('idle');
       setFriendRequestStatus('idle');
       checkCurrentStatus();
@@ -39,14 +38,10 @@ function UserProfileModal({ open, user, onClose, currentUserId }) {
   const checkCurrentStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      
-      // Проверяем статус подписки
       const followersRes = await axios.get(`/api/friendsAndFollowers/followers/${user._id}`, {
         headers: { 'x-auth-token': token }
       });
       setIsSubscribed(followersRes.data.some(f => f._id === currentUserId));
-      
-      // Проверяем статус заявки в друзья
       const requestsRes = await axios.get(`/api/friendsAndFollowers/friend-requests/${user._id}`, {
         headers: { 'x-auth-token': token }
       });
@@ -173,7 +168,6 @@ function formatDate(timestamp) {
   const date = new Date(timestamp);
   return date.toLocaleString();
 }
-
 export default function UserSearch({ currentUserId, onUserSelect }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -182,7 +176,6 @@ export default function UserSearch({ currentUserId, onUserSelect }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [history, setHistory] = useState([]);
-
   const debouncedSearch = useCallback(
     debounce(async (searchValue) => {
       if (!searchValue.trim()) {

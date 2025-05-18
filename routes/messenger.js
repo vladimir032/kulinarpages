@@ -9,8 +9,7 @@ const sanitizeHtml = require('sanitize-html');
 
 const checkChatAccess = async (req, res, next) => {
   const chatId = req.params.chatId || req.body.chat;
-  
-  // Если это запрос на количество непрочитанных, сразу пропускаем
+
   if (req.path.includes('unread-count')) {
     return next();
   }
@@ -27,7 +26,6 @@ const checkChatAccess = async (req, res, next) => {
   next();
 };
 
-// Количество непрочитанных сообщений
 router.get('/messages/unread-count', auth, async (req, res) => {
   try {
     const chats = await Chat.find({ participants: req.user.id });
@@ -60,7 +58,6 @@ router.get('/chats', auth, async (req, res) => {
   res.json(chats);
 });
 
-// история сообщений в чате
 router.get('/messages/:chatId', auth, checkChatAccess, [
   query('limit').optional().isInt({ min: 1, max: 100 }).toInt()
 ], async (req, res) => {

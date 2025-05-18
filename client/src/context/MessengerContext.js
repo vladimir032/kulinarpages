@@ -137,21 +137,16 @@ export const MessengerProvider = ({ children }) => {
   const socketRef = useRef();
   const { user } = useAuth();
   const token = localStorage.getItem('token');
-
-  // Нормализация ID
   const normalizeId = (id) => {
     if (!id) return '';
     return typeof id === 'string' ? id : id.toString();
   };
-
-  // Нормализация сообщения с сервера
   const normalizeServerMsg = (msg, currentUserId) => {
     if (!msg || typeof msg !== 'object') return null;
     
     const normalized = { ...msg };
     const currentUserIdStr = normalizeId(currentUserId);
-    
-    // Нормализация sender
+
     if (typeof msg.sender === 'string') {
       normalized.sender = {
         _id: msg.sender,
@@ -169,7 +164,6 @@ export const MessengerProvider = ({ children }) => {
     return normalized;
   };
 
-  // Загрузка чатов
   useEffect(() => {
     if (!token) return;
     
@@ -208,7 +202,6 @@ export const MessengerProvider = ({ children }) => {
     fetchUnread();
   }, [token]);
 
-  // WebSocket соединение
   useEffect(() => {
     if (!token) return;
 
@@ -259,7 +252,6 @@ export const MessengerProvider = ({ children }) => {
     };
   }, [token, user?._id]);
 
-  // Загрузка сообщений
   const loadMessages = async (chatId, limit = 20) => {
     if (!chatId) return;
     
@@ -280,8 +272,6 @@ export const MessengerProvider = ({ children }) => {
         type: 'SET_MESSAGES', 
         messages: normalizedMessages 
       });
-
-      // Подписка на чат
       socketRef.current?.emit('join', chatId);
     } catch (error) {
       console.error('Failed to load messages:', error);
@@ -291,17 +281,13 @@ export const MessengerProvider = ({ children }) => {
     }
   };
 
-  // Отправка сообщения
   const sendMessage = async (chatId, text) => {
     if (!chatId || !text || !user?._id || !socketRef.current) {
       console.error('Invalid message data:', { chatId, text, user });
       return;
     }
-
     const currentUserId = normalizeId(user._id);
     const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-    // Оптимистичное обновление
     const optimisticMsg = {
       _id: tempId,
       chat: chatId,
@@ -318,17 +304,13 @@ export const MessengerProvider = ({ children }) => {
     dispatch({ type: 'ADD_MESSAGE', message: optimisticMsg });
 
     try {
-      // Отправка через сокет
       socketRef.current.emit('message', { chatId, text });
-
-      // Отправка через REST API
       const response = await axios.post(
         '/api/messenger/messages',
         { chat: chatId, text, sender: currentUserId },
         { headers: { 'x-auth-token': token } }
       );
 
-      // Замена временного сообщения на серверное
       const serverMsg = normalizeServerMsg(response.data, currentUserId);
       if (serverMsg) {
         dispatch({
@@ -341,26 +323,20 @@ export const MessengerProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Failed to send message:', error);
-      // Откат оптимистичного обновления
       dispatch({
         type: 'SET_MESSAGES',
         messages: state.messages.filter(msg => msg._id !== tempId)
       });
     }
   };
-
-  // Индикатор набора
   const sendTyping = (chatId, isTyping) => {
     if (!chatId) return;
     socketRef.current?.emit('typing', { chatId, isTyping });
   };
 
-  // Открытие чата
   const openChat = async (userId) => {
     if (!userId) return;
-
     try {
-      // Поиск существующего чата
       const existingChat = state.chats.find(c => 
         c.participants?.some(p => normalizeId(p._id) === normalizeId(userId))
       );
@@ -370,7 +346,6 @@ export const MessengerProvider = ({ children }) => {
         return;
       }
 
-      // Создание нового чата
       const { data } = await axios.post(
         '/api/messenger/chats',
         { userId },
@@ -389,7 +364,6 @@ export const MessengerProvider = ({ children }) => {
     }
   };
 
-  // Мемоизированный контекст
   const contextValue = useMemo(() => ({
     ...state,
     loadMessages,

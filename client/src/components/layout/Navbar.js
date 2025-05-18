@@ -57,7 +57,6 @@ const Navbar = () => {
             Кулинарные рецепты
           </Typography>
 
-          {/* кнопка для мобилок */}
           <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               color="inherit"
