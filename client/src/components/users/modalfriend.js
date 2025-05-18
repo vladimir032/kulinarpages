@@ -7,8 +7,6 @@ import { useMessenger } from '../../context/MessengerContext';
 export default function UserProfileModal({ open, user, onClose, currentUserId }) {
   const { openChat } = useMessenger();
   if (!user) return null;
-
-
   return (
     <Modal open={open} onClose={onClose}>
       <Paper sx={{ p: 4, maxWidth: 400, mx: 'auto', mt: 8, position: 'relative' }}>
@@ -23,24 +21,30 @@ export default function UserProfileModal({ open, user, onClose, currentUserId })
           <Typography color="text.secondary">{user.email}</Typography>
           {user.status && <Typography sx={{ mt: 1 }}>{user.status}</Typography>}
         </Box>
-
-                <Button
-                  variant="contained"
-                  color="success"
-                  fullWidth
-                  sx={{ mb: 1 }}
-                  onClick={async () => {
-                    await openChat(user._id);
-                    if (typeof window !== 'undefined') {
-                      // Открыть MessengerModal (если есть глобальный стейт)
-                      const evt = new CustomEvent('open-messenger');
-                      window.dispatchEvent(evt);
-                    }
-                    onClose();
-                  }}
-                >
-                  Написать
-                </Button>
+          <Button
+            variant="contained"
+            color="success"
+            fullWidth
+            sx={{ mb: 1 }}
+            onClick={async () => {
+              try {
+                console.log('[MODALFRIEND] Попытка открыть чат:');
+                console.log('[MODALFRIEND] currentUserId:', currentUserId);
+                console.log('[MODALFRIEND] user._id (собеседник):', user?._id);
+                console.log('[MODALFRIEND] user объект:', user);
+                await openChat(user._id);
+                if (typeof window !== 'undefined') {
+                  const evt = new CustomEvent('open-messenger');
+                  window.dispatchEvent(evt);
+                }
+                onClose();
+              } catch (e) {
+                console.error('[MODALFRIEND] Ошибка при открытии чата:', e);
+              }
+            }}
+          >
+            Написать
+          </Button>
       </Paper>
     </Modal>
   );

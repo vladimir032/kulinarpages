@@ -9,7 +9,9 @@ import {
   Chip, 
   Stack, 
   Paper, 
-  Grid 
+  Grid,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -41,14 +43,16 @@ export default function ProfileView({
   onSave,
   onPrivacyChange
 }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   return (
+    
     <Box sx={{ maxWidth: 900, mx: 'auto', mt: 4, mb: 4 }}>
-      {/* COVER PHOTO */}
       <Box sx={{ position: 'relative', mb: 2 }}>
         <Box
           sx={{
             width: '100%',
-            height: 220,
+            height: isMobile ? 140 : 220,
             background: `url(${editMode ? form.coverPhoto : profile.coverPhoto || ''}) center/cover, linear-gradient(90deg,#ffe0b2,#ffccbc)`,
             borderRadius: 4,
             boxShadow: 2,
@@ -68,7 +72,7 @@ export default function ProfileView({
               <Avatar
                 src={editMode ? form.avatar : profile.avatar || ''}
                 alt="avatar"
-                sx={{ width: 120, height: 120, fontSize: 48, border: '4px solid #fff', boxShadow: 2, mt: -12 }}
+                sx={{ width: isMobile ? 80 : 120, height: isMobile ? 80 : 120, fontSize: 48, border: '4px solid #fff', boxShadow: 2, mt: -12 }}
               >
                 {!profile.avatar && profile.username[0]?.toUpperCase()}
               </Avatar>
@@ -98,36 +102,39 @@ export default function ProfileView({
                 ) : (
                   <Typography sx={{ mt: 2 }}><b>Статус:</b> {profile.status}</Typography>
                 )}
-                <Stack 
-                  direction="row" 
-                  py={1}
-                  spacing={1}
-                  sx={{
-                    mt: 2,
-                    justifyContent: 'space-between',
-                    width: '110%',
-                  }}
-                >
+                  <Stack
+                    direction={isMobile ? 'column' : 'row'}
+                    spacing={isMobile ? 1.5 : 1}
+                    sx={{
+                      mt: 2,
+                      ...(isMobile
+                        ? {}
+                        : {
+                            justifyContent: 'space-between',
+                            width: '100%',
+                          }),
+                    }}
+                  >
                   <Button 
-                    variant="contained" 
+                    variant="contained" fullWidth={isMobile}
                     color="primary" 
                     href="/friends"
                     size="small"
                     sx={{
                       flex: 1,
-                      minWidth: 0, // Важно для равномерного распределения
+                      minWidth: 0, 
                       textTransform: 'none',
                       fontSize: '0.875rem',
                       py: 0.5,
                       px: 1,
-                      width: '9%',
+                      width: '90%',
                       whiteSpace: 'nowrap'
                     }}
                   >
                     Друзья
                   </Button>
                   <Button 
-                    variant="contained" 
+                    variant="contained" fullWidth={isMobile}
                     color="secondary" 
                     href="/followers"
                     size="small"
@@ -140,13 +147,12 @@ export default function ProfileView({
                       px: 1,
                       whiteSpace: 'nowrap',
                       mx: 1,
-                      width: '100%'
                     }}
                   >
                     Подписчики
                   </Button>
                   <Button 
-                    variant="contained" 
+                    variant="contained" fullWidth={isMobile}
                     color="warning" 
                     href="/friend-requests"
                     size="small"
@@ -168,10 +174,10 @@ export default function ProfileView({
             </Stack>
           </Grid>
           <Grid item xs={12} md={8}>
-            <Grid container spacing={4}>
+            <Grid container spacing={isMobile ? 2 : 4}>
               <Grid item xs={12} md={8}>
                 <Stack spacing={2}>
-                  <Typography variant="h6" sx={{ mb: 1 }}>О себе</Typography>
+                  <Typography variant={isMobile ? 'h6' : 'h5'}>О себе</Typography>
                   {editMode ? (
                     <>
                       <TextField
@@ -266,7 +272,7 @@ export default function ProfileView({
                           style={{ width: 48, height: 32, border: 'none', background: 'none', cursor: 'pointer' }}
                         />
                       </Box>
-                      <Stack direction="row" spacing={2}>
+                      <Stack direction={isMobile ? 'column' : 'row'} spacing={isMobile ? 1.5 : 2}>
                         <TextField
                           label="VK"
                           name="vk"
@@ -325,7 +331,7 @@ export default function ProfileView({
               </Grid>
               {editMode && (
                 <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, bgcolor: '#fafafa' }} elevation={1}>
+                  <Paper sx={{ p: isMobile ? 2 : 3, bgcolor: '#fafafa' }} elevation={isMobile ? 0 : 1}>
                     <Typography variant="subtitle1" sx={{ mb: 1 }}>Настройки приватности</Typography>
                     <Stack spacing={1}>
                         {[
@@ -360,7 +366,7 @@ export default function ProfileView({
             </Grid>
           </Grid>
         </Grid>
-        <Stack direction="row" spacing={2} mt={4} justifyContent="flex-end">
+        <Stack direction="row" spacing={2} mt={isMobile ? 3 : 4} justifyContent="flex-end">
           {editMode ? (
             <Button
               variant="contained"

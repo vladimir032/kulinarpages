@@ -47,7 +47,7 @@ const recipeSchema = new mongoose.Schema({
     required: true
   },
   prepTime: {
-    type: Number,  // in minutes
+    type: Number,
     required: true,
     min: 1,
     max: 500

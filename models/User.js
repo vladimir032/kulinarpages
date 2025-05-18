@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    default: '' // URL или base64
+    default: '' 
   },
   status: {
     type: String,
@@ -86,7 +86,7 @@ const userSchema = new mongoose.Schema({
   }],
   coverPhoto: {
     type: String,
-    default: '' // URL или base64
+    default: '' 
   },
   privacySettings: {
     type: Object,

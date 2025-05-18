@@ -1,23 +1,27 @@
 # Cooking Recipes Web Application
 
-A full-stack web application for managing and sharing cooking recipes.
+A full-stack web application for managing and sharing cooking recipes with family and friends.
 
 ## Features
 
-- User authentication (register/login)
+- User authentication (register/login) with JWT
 - Browse popular recipes
-- View detailed recipe information
+- View detailed recipe information including categories, difficulty, and calorie info
 - Save favorite recipes
 - Create and manage personal recipes
-- Recipe categories and difficulty levels
-- Calorie information
+- Friends and followers system with messaging support
+- Admin panel with statistics and management features
 
 ## Tech Stack
 
 - Frontend: React.js
 - Backend: Node.js + Express.js
-- Database: MongoDB
-- Authentication: JWT
+- Database: MongoDB with Mongoose
+- Authentication: JWT (JSON Web Tokens)
+- Real-time communication: Socket.io
+- API Documentation: Swagger (OpenAPI 3.0)
+- Containerization: Docker, Docker Compose
+- Web server: Nginx (for frontend)
 
 ## Project Structure
 
@@ -34,6 +38,10 @@ A full-stack web application for managing and sharing cooking recipes.
 - `routes/` – Express route handlers (auth, recipes, users, admin, etc.).
 - `scripts/` – Utility scripts (e.g., database seeding).
 - `sockets/` – Socket.io server logic (e.g., messenger).
+- `swagger/` – Swagger API documentation files.
+- `Dockerfile` – Backend Docker image build instructions.
+- `docker-compose.yml` – Docker Compose configuration for backend and frontend.
+- `nginx.conf` – Nginx configuration for serving frontend.
 
 ### Frontend (`client/`)
 
@@ -55,27 +63,93 @@ A full-stack web application for managing and sharing cooking recipes.
   - `context/` – React Contexts for authentication and messenger.
   - `utils/` – Utility functions (e.g., stats export).
   - `App.css`, `index.css` – Global styles.
+- `Dockerfile` – Frontend Docker image build instructions.
 
-## Setup Instructions
+## Installation and Setup
 
-1. Install dependencies:
+### Prerequisites
+
+- Node.js (v16+ recommended)
+- npm
+- MongoDB instance (local or cloud)
+- Docker and Docker Compose (optional, for containerized setup)
+
+### Local Setup
+
+1. Clone the repository:
+
+   ```bash
+   git clone <repository-url>
+   cd kulinar-main
+   ```
+
+2. Install backend dependencies:
+
    ```bash
    npm install
+   ```
+
+3. Install frontend dependencies:
+
+   ```bash
    npm run install-client
    ```
 
-2. Create a .env file in the root directory with:
+4. Create a `.env` file in the root directory with the following variables:
+
    ```
-   MONGODB_URI=your_mongodb_uri
-   JWT_SECRET=your_jwt_secret
+   MONGODB_URI=your_mongodb_connection_string
+   JWT_SECRET=your_jwt_secret_key
    PORT=5000
    ```
 
-3. Run the application:
+5. Run the development servers concurrently (backend + frontend):
+
    ```bash
    npm run dev
    ```
 
-The application will run on:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:5000
+6. Access the application:
+
+   - Frontend: [http://localhost:3000](http://localhost:3000)
+   - Backend API: [http://localhost:5000/api](http://localhost:5000/api)
+
+### Docker Setup
+
+1. Build and start containers using Docker Compose:
+
+   ```bash
+   docker-compose up --build
+   ```
+
+2. Access the application:
+
+   - Frontend: [http://localhost](http://localhost)
+   - Backend API: [http://localhost:5000/api](http://localhost:5000/api)
+
+## API Documentation
+
+Interactive API documentation is available via Swagger UI:
+
+- [http://localhost:5000/kulinar_diplom-api-docs](http://localhost:5000/kulinar_diplom-api-docs)
+
+This documentation includes all available endpoints, request/response schemas, and authentication details.
+
+
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature/your-feature`).
+3. Make your changes and commit (`git commit -m 'Add some feature'`).
+4. Push to the branch (`git push origin feature/your-feature`).
+5. Open a pull request.
+
+Please ensure your code follows existing style and includes appropriate tests.
+
+## License
+
+This project currently does not specify a license.
+
+

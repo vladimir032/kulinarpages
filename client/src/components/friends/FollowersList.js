@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Box, Typography, Avatar, Paper, Stack } from '@mui/material';
 import UserProfileModal from '../users/modalfriend';
+import { useAuth } from '../../context/AuthContext';
 
 const FollowersList = ({ userId }) => {
   const [followers, setFollowers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const { user } = useAuth();
+  const currentUserId = user?._id;
 
   useEffect(() => {
     axios.get(`/api/users/followers/${userId}`)
@@ -62,7 +65,7 @@ const FollowersList = ({ userId }) => {
         open={modalOpen}
         user={selectedUser}
         onClose={() => setModalOpen(false)}
-        currentUserId={userId}
+        currentUserId={currentUserId}
       />
     </>
   );

@@ -5,8 +5,6 @@ const User = require('../models/User');
 const Recipe = require('../models/Recipe');
 const { Parser } = require('json2csv');
 const excelJS = require('exceljs');
-
-// @route   GET api/statistics/users
 const isAdmin = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -21,9 +19,6 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
-// @route   GET api/statistics/recipes
-// @desc    Get extended statistics for recipes
-// @access  Private (admin only)
 router.get('/recipes', auth, isAdmin, async (req, res) => {
   try {
     const stats = await Recipe.aggregate([
@@ -43,9 +38,6 @@ router.get('/recipes', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   GET api/statistics/users/:id
-// @desc    Get personal statistics for a user
-// @access  Private (admin only)
 router.get('/users/:id', auth, isAdmin, async (req, res) => {
   try {
     const userId = req.params.id;
@@ -62,18 +54,9 @@ router.get('/users/:id', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   GET api/statistics/export
-// @desc    Export data in various formats
-// @access  Private (admin only)
-// Query params: type=txt|sql|csv|xlsx|json
-// @route   GET api/statistics/export
-// @desc    Export data in various formats
-// @access  Private (admin only)
 router.get('/export', auth, isAdmin, async (req, res) => {
   try {
     const { type, data = 'users' } = req.query;
-
-    // Валидация параметров
     const validTypes = ['txt', 'sql', 'csv', 'xlsx', 'json'];
     const validData = ['users', 'recipes'];
     
@@ -131,15 +114,12 @@ router.get('/export', auth, isAdmin, async (req, res) => {
         try {
           const workbook = new excelJS.Workbook();
           const worksheet = workbook.addWorksheet(filename);
-          
-          // Добавляем заголовки
           worksheet.columns = fields.map(field => ({
             header: field,
             key: field,
             width: 20
           }));
 
-          // Добавляем данные
           exportData.forEach(item => {
             worksheet.addRow(item);
           });

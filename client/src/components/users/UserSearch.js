@@ -14,18 +14,45 @@ import {
   Modal,
   Paper,
   IconButton,
+  Container,
   Button
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useMessenger } from '../../context/MessengerContext';
 
-// Модальное окно профиля пользователя (упрощённая версия)
 function UserProfileModal({ open, user, onClose, currentUserId }) {
-  const [status, setStatus] = useState('idle'); // idle, pending, success, error
+  const [subscribeStatus, setSubscribeStatus] = useState('idle');
+  const [friendRequestStatus, setFriendRequestStatus] = useState('idle');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [friendRequestSent, setFriendRequestSent] = useState(false);
   const { openChat } = useMessenger();
 
+  useEffect(() => {
+    if (open && user) {
+      setSubscribeStatus('idle');
+      setFriendRequestStatus('idle');
+      checkCurrentStatus();
+    }
+  }, [open, user]);
+
+  const checkCurrentStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const followersRes = await axios.get(`/api/friendsAndFollowers/followers/${user._id}`, {
+        headers: { 'x-auth-token': token }
+      });
+      setIsSubscribed(followersRes.data.some(f => f._id === currentUserId));
+      const requestsRes = await axios.get(`/api/friendsAndFollowers/friend-requests/${user._id}`, {
+        headers: { 'x-auth-token': token }
+      });
+      setFriendRequestSent(requestsRes.data.some(r => r.userId === currentUserId));
+    } catch (error) {
+      console.error('Ошибка проверки статуса:', error);
+    }
+  };
+
   const handleSubscribe = async () => {
-    setStatus('pending');
+    setSubscribeStatus('pending');
     try {
       const token = localStorage.getItem('token');
       await axios.post('/api/users/add', {
@@ -35,16 +62,17 @@ function UserProfileModal({ open, user, onClose, currentUserId }) {
       }, {
         headers: { 'x-auth-token': token }
       });
-      setStatus('success');
+      setSubscribeStatus('success');
+      setIsSubscribed(true);
       alert('Вы успешно подписались!');
     } catch (error) {
-      setStatus('error');
+      setSubscribeStatus('error');
       alert('Ошибка при подписке');
     }
   };
   
   const handleSendFriendRequest = async () => {
-    setStatus('pending');
+    setFriendRequestStatus('pending');
     try {
       const token = localStorage.getItem('token');
       await axios.post('/api/users/add', {
@@ -54,10 +82,11 @@ function UserProfileModal({ open, user, onClose, currentUserId }) {
       }, {
         headers: { 'x-auth-token': token }
       });
-      setStatus('success');
+      setFriendRequestStatus('success');
+      setFriendRequestSent(true);
       alert('Заявка на дружбу отправлена');
     } catch (error) {
-      setStatus('error');
+      setFriendRequestStatus('error');
       alert('Ошибка при отправке заявки');
     }
   };
@@ -97,7 +126,6 @@ function UserProfileModal({ open, user, onClose, currentUserId }) {
           onClick={async () => {
             await openChat(user._id);
             if (typeof window !== 'undefined') {
-              // Открыть MessengerModal (если есть глобальный стейт)
               const evt = new CustomEvent('open-messenger');
               window.dispatchEvent(evt);
             }
@@ -112,9 +140,9 @@ function UserProfileModal({ open, user, onClose, currentUserId }) {
           fullWidth
           sx={{ mb: 1 }}
           onClick={handleSubscribe}
-          disabled={status === 'pending'}
+          disabled={isSubscribed || subscribeStatus === 'pending'}
         >
-          {status === 'pending' ? 'Подписка...' : 'Подписаться'}
+          {isSubscribed ? 'Вы подписаны' : subscribeStatus === 'pending' ? 'Подписка...' : 'Подписаться'}
         </Button>
 
         <Button
@@ -123,9 +151,9 @@ function UserProfileModal({ open, user, onClose, currentUserId }) {
           fullWidth
           sx={{ mb: 1 }}
           onClick={handleSendFriendRequest}
-          disabled={status === 'pending'}
+          disabled={friendRequestSent || friendRequestStatus === 'pending'}
         >
-          {status === 'pending' ? 'Отправка заявки...' : 'Отправить заявку в друзья'}
+          {friendRequestSent ? 'Заявка отправлена' : friendRequestStatus === 'pending' ? 'Отправка заявки...' : 'Отправить заявку в друзья'}
         </Button>
 
         <Button variant="outlined" fullWidth onClick={onClose}>
@@ -140,7 +168,6 @@ function formatDate(timestamp) {
   const date = new Date(timestamp);
   return date.toLocaleString();
 }
-
 export default function UserSearch({ currentUserId, onUserSelect }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -149,7 +176,6 @@ export default function UserSearch({ currentUserId, onUserSelect }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [history, setHistory] = useState([]);
-
   const debouncedSearch = useCallback(
     debounce(async (searchValue) => {
       if (!searchValue.trim()) {
@@ -206,66 +232,76 @@ export default function UserSearch({ currentUserId, onUserSelect }) {
     setSelectedUser(null);
   };
 
-  return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
-      <TextField
-        label="Поиск пользователя (username или email)"
-        value={query}
-        onChange={handleInputChange}
-        fullWidth
-        sx={{ mb: 2 }}
-      />
+return (
+  <Container 
+    component="main" 
+    maxWidth="md"
+    sx={{ 
+      mt: 4,
+      display: 'flex',
+      flexDirection: 'column',
+      flex: 1
+    }}
+  >
+    <TextField
+      label="Поиск пользователя (username или email)"
+      value={query}
+      onChange={handleInputChange}
+      fullWidth
+      sx={{ mb: 2 }}
+    />
 
-      {history.length > 0 && (
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>История поиска</Typography>
-          <List sx={{ bgcolor: '#fafafa', borderRadius: 2, border: '1px solid #eee' }}>
-            {history.map(item => (
-              <ListItem
-                key={item.user._id}
-                button
-                onClick={() => handleUserClick(item.user)}
-                sx={{ cursor: 'pointer', '&:hover': { bgcolor: '#f5f5f5' } }}
-              >
-                <ListItemAvatar>
-                  <Avatar src={item.user.avatar}>
-                    {item.user.username[0]?.toUpperCase()}
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={item.user.username}
-                  secondary={item.user.email}
-                />
-                <Typography sx={{ minWidth: 120, textAlign: 'right', color: 'text.secondary', fontSize: 13 }}>
-                  {formatDate(item.timestamp)}
-                </Typography>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      )}
+    {history.length > 0 && (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>История поиска</Typography>
+        <List sx={{ bgcolor: '#fafafa', borderRadius: 2, border: '1px solid #eee' }}>
+          {history.map(item => (
+            <ListItem
+              key={item.user._id}
+              button
+              onClick={() => handleUserClick(item.user)}
+              sx={{ cursor: 'pointer', '&:hover': { bgcolor: '#f5f5f5' } }}
+            >
+              <ListItemAvatar>
+                <Avatar src={item.user.avatar}>
+                  {item.user.username[0]?.toUpperCase()}
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary={item.user.username}
+                secondary={item.user.email}
+              />
+              <Typography sx={{ minWidth: 120, textAlign: 'right', color: 'text.secondary', fontSize: 13 }}>
+                {formatDate(item.timestamp)}
+              </Typography>
+            </ListItem>
+          ))}
+        </List>
+      </Box>
+    )}
 
-      {loading && <CircularProgress size={32} />}
-      {error && !loading && <Typography color="error">{error}</Typography>}
-      <List>
-        {results.map(user => (
-          <ListItem key={user._id} button onClick={() => handleUserClick(user)}>
-            <ListItemAvatar>
-              <Avatar src={user.avatar}>
-                {user.username[0]?.toUpperCase()}
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText primary={user.username} secondary={user.email} />
-          </ListItem>
-        ))}
-      </List>
+    {loading && <CircularProgress size={32} />}
+    {error && !loading && <Typography color="error">{error}</Typography>}
+    
+    <List>
+      {results.map(user => (
+        <ListItem key={user._id} button onClick={() => handleUserClick(user)}>
+          <ListItemAvatar>
+            <Avatar src={user.avatar}>
+              {user.username[0]?.toUpperCase()}
+            </Avatar>
+          </ListItemAvatar>
+          <ListItemText primary={user.username} secondary={user.email} />
+        </ListItem>
+      ))}
+    </List>
 
-      <UserProfileModal
-        open={modalOpen}
-        user={selectedUser}
-        onClose={handleModalClose}
-        currentUserId={currentUserId}
-      />
-    </Box>
-  );
+    <UserProfileModal
+      open={modalOpen}
+      user={selectedUser}
+      onClose={handleModalClose}
+      currentUserId={currentUserId}
+    />
+  </Container>
+);
 }

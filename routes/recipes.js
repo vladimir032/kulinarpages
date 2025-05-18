@@ -4,7 +4,6 @@ const auth = require('../middleware/auth');
 const Recipe = require('../models/Recipe');
 const User = require('../models/User');
 
-// Middleware to check if user is admin
 const isAdmin = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -19,9 +18,6 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
-// @route   GET api/recipes
-// @desc    Get all recipes
-// @access  Public
 router.get('/', async (req, res) => {
   try {
     const recipes = await Recipe.find().sort({ createdAt: -1 });
@@ -32,9 +28,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   GET api/recipes/popular
-// @desc    Get popular recipes
-// @access  Public
 router.get('/popular', async (req, res) => {
   try {
     const recipes = await Recipe.find()
@@ -47,9 +40,6 @@ router.get('/popular', async (req, res) => {
   }
 });
 
-// @route   GET api/recipes/:id
-// @desc    Get recipe by ID and increment views
-// @access  Public
 router.get('/:id', async (req, res) => {
   try {
     const recipe = await Recipe.findByIdAndUpdate(
@@ -70,9 +60,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// @route   POST api/recipes
-// @desc    Create a recipe
-// @access  Private (admin only)
 router.post('/', auth, isAdmin, async (req, res) => {
   try {
     const newRecipe = new Recipe({
@@ -96,9 +83,6 @@ router.post('/', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   PUT api/recipes/:id
-// @desc    Update a recipe
-// @access  Private (admin or author)
 router.put('/:id', auth, async (req, res) => {
   try {
     let recipe = await Recipe.findById(req.params.id);
@@ -125,9 +109,6 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// @route   DELETE api/recipes/:id
-// @desc    Delete a recipe
-// @access  Private (admin or author)
 router.delete('/:id', auth, async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id);
@@ -141,7 +122,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
-    await recipe.remove();
+    await Recipe.findByIdAndDelete(req.params.id);
     res.json({ msg: 'Recipe removed' });
   } catch (err) {
     console.error(err.message);
@@ -149,9 +130,6 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// @route   POST api/recipes/:id/save
-// @desc    Save/unsave a recipe
-// @access  Private
 router.post('/:id/save', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -172,9 +150,7 @@ router.post('/:id/save', auth, async (req, res) => {
   }
 });
 
-// @route   POST api/recipes/find
-// @desc    Find recipes by ingredients
-// @access  Public
+//холодильник
 router.post('/find', async (req, res) => {
   try {
     const { ingredients } = req.body;
@@ -188,14 +164,11 @@ router.post('/find', async (req, res) => {
     allRecipes.forEach(recipe => {
       const recipeIngredients = recipe.ingredients.map(ing => ing.name.toLowerCase());
       const userIngredients = ingredients.map(ing => ing.toLowerCase());
-      
-      // Count missing ingredients
       const missingCount = recipeIngredients.filter(ing => !userIngredients.includes(ing)).length;
       
       if (missingCount === 0) {
         results.available.push(recipe);
       } else if (missingCount <= 3) {
-        // Add missing ingredients info to the recipe
         const recipeCopy = recipe.toObject();
         recipeCopy.missingIngredients = recipeIngredients.filter(ing => !userIngredients.includes(ing));
         results.limited.push(recipeCopy);
@@ -209,9 +182,6 @@ router.post('/find', async (req, res) => {
   }
 });
 
-// @route   GET api/admin/statistics
-// @desc    Get site statistics
-// @access  Private (admin only)
 router.get('/admin/statistics', auth, isAdmin, async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
@@ -232,9 +202,6 @@ router.get('/admin/statistics', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   GET api/admin/users
-// @desc    Get all users
-// @access  Private (admin only)
 router.get('/admin/users', auth, isAdmin, async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -245,9 +212,6 @@ router.get('/admin/users', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   PUT api/admin/users/:id/block
-// @desc    Block a user
-// @access  Private (admin only)
 router.put('/admin/users/:id/block', auth, isAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -262,9 +226,6 @@ router.put('/admin/users/:id/block', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   PUT api/admin/users/:id/unblock
-// @desc    Unblock a user
-// @access  Private (admin only)
 router.put('/admin/users/:id/unblock', auth, isAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -279,9 +240,6 @@ router.put('/admin/users/:id/unblock', auth, isAdmin, async (req, res) => {
   }
 });
 
-// @route   PUT api/admin/users/:id/restrict
-// @desc    Restrict a user until a certain date
-// @access  Private (admin only)
 router.put('/admin/users/:id/restrict', auth, isAdmin, async (req, res) => {
   try {
     const { restrictionUntil } = req.body;

@@ -38,7 +38,7 @@ const AdminStatistics = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({});
-  const [period, setPeriod] = useState('day'); // 'day' or 'hour'
+  const [period, setPeriod] = useState('day');
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -78,12 +78,10 @@ const AdminStatistics = () => {
   if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
   if (error) return <Box sx={{ p: 4, textAlign: 'center' }}><Typography color="error">{error}</Typography></Box>;
 
-  // Переключатель периода
   const handlePeriod = (event, value) => {
     if (value) setPeriod(value);
   };
 
-  // Преобразование данных для графиков
   const usersByDay = {
     labels: stats.users?.map(u => u._id),
     datasets: [{

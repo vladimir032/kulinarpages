@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Friend = require('../models/friend');
+const Friend = require('../models/Friend');
 const Follower = require('../models/Follower');
 const auth = require('../middleware/auth');
 
@@ -20,7 +20,6 @@ router.post('/add', auth, async (req, res) => {
 
   try {
     if (action === 'friend') {
-      // Проверка, если запрос уже существует
       const existingFriendRequest = await Friend.findOne({
         $or: [
           { user: targetUserId, friend: userId },
@@ -35,12 +34,10 @@ router.post('/add', auth, async (req, res) => {
           return res.status(400).json({ message: 'Вы уже друзья.' });
         }
       }
-
-      // Создаем новый запрос на дружбу
       console.log('Создаём Friend:', { user: targetUserId, friend: userId });
       const newFriendRequest = new Friend({
-        user: targetUserId,
-        friend: userId,
+        user: userId,
+        friend: targetUserId,
         status: 'pending'
       });
       await newFriendRequest.save();
@@ -48,14 +45,12 @@ router.post('/add', auth, async (req, res) => {
     }
 
     if (action === 'follow') {
-      // Проверка, если пользователь уже подписан
       const existingFollower = await Follower.findOne({ user: targetUserId, follower: userId });
 
       if (existingFollower) {
         return res.status(400).json({ message: 'Вы уже подписаны на этого пользователя.' });
       }
 
-      // Создаем новую подписку
       console.log('Создаём Follower:', { user: targetUserId, follower: userId });
       const newFollower = new Follower({
         user: targetUserId,
@@ -72,52 +67,57 @@ router.post('/add', auth, async (req, res) => {
   }
 });
 
-// Подтвердить заявку в друзья
 router.post('/friend/accept', async (req, res) => {
   const { userId, targetUserId } = req.body;
-
+  console.log('[ACCEPT] Запрос на принятие заявки:', { body: req.body });
   try {
+    console.log('[ACCEPT] Ищу заявку:', { user: targetUserId, friend: userId, status: 'pending' });
     const friendRequest = await Friend.findOne({ user: targetUserId, friend: userId, status: 'pending' });
-
+    console.log('[ACCEPT] Результат поиска заявки:', friendRequest);
     if (!friendRequest) {
+      console.log('[ACCEPT] Не найдено!');
       return res.status(400).json({ message: 'Запрос не найден или уже отклонен.' });
     }
-
+    console.log('[ACCEPT] Принимаем заявку в друзья:', { user: targetUserId, friend: userId });
     await friendRequest.acceptRequest();
     res.status(200).json({ message: 'Заявка в друзья подтверждена.' });
   } catch (error) {
+    console.error('[ACCEPT] Ошибка:', error);
+
     console.error(error);
     res.status(500).json({ message: 'Ошибка сервера.' });
   }
 });
 
-// Отклонить заявку в друзья
 router.post('/friend/reject', async (req, res) => {
   const { userId, targetUserId } = req.body;
-
+  console.log('[REJECT] Запрос на отклонение заявки:', { body: req.body });
   try {
+    console.log('[REJECT] Ищу заявку:', { user: targetUserId, friend: userId, status: 'pending' });
     const friendRequest = await Friend.findOne({ user: targetUserId, friend: userId, status: 'pending' });
-
+    console.log('[REJECT] Результат поиска заявки:', friendRequest);
     if (!friendRequest) {
+      console.log('[REJECT] Не найдено!');
       return res.status(400).json({ message: 'Запрос не найден или уже отклонен.' });
     }
-
+    console.log('[REJECT] Отклоняем заявку в друзья:', { user: targetUserId, friend: userId });
     await friendRequest.rejectRequest();
     res.status(200).json({ message: 'Заявка в друзья отклонена.' });
   } catch (error) {
+    console.error('[REJECT] Ошибка:', error);
+
     console.error(error);
     res.status(500).json({ message: 'Ошибка сервера.' });
   }
 });
 
-// Получить входящие заявки в друзья
 router.get('/friend-requests/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
-    const requests = await Friend.find({ user: userId, status: 'pending' })
+    const requests = await Friend.find({ friend: userId, status: 'pending' })
       .populate('user', 'username avatar status');
     const requestList = requests.map(req => ({
-      userId: req.user._id,
+      userId: req.user._id, 
       username: req.user.username,
       avatar: req.user.avatar,
       status: req.user.status
@@ -129,10 +129,8 @@ router.get('/friend-requests/:userId', async (req, res) => {
   }
 });
 
-// Роут для получения списка друзей
 router.get('/friends/:userId', async (req, res) => {
   const { userId } = req.params;
-
   try {
     const friends = await Friend.find({
       $or: [
@@ -140,10 +138,10 @@ router.get('/friends/:userId', async (req, res) => {
         { friend: userId, status: 'accepted' }
       ]
     }).populate('user friend', 'username avatar status');
-
     const friendList = friends.map(friend => {
       const friendUser = friend.user._id.toString() === userId ? friend.friend : friend.user;
       return {
+        _id: friendUser._id,
         username: friendUser.username,
         avatar: friendUser.avatar,
         status: friendUser.status
@@ -157,19 +155,16 @@ router.get('/friends/:userId', async (req, res) => {
   }
 });
 
-// Роут для получения списка подписчиков
 router.get('/followers/:userId', async (req, res) => {
   const { userId } = req.params;
-
   try {
     const followers = await Follower.find({ user: userId }).populate('follower', 'username avatar status');
-
     const followerList = followers.map(follower => ({
+      _id: follower.follower._id,
       username: follower.follower.username,
       avatar: follower.follower.avatar,
       status: follower.follower.status
     }));
-
     res.status(200).json(followerList);
   } catch (error) {
     console.error(error);

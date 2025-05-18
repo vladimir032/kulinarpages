@@ -79,7 +79,6 @@ const AdminPanelMain = () => {
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
-  // Ingredients handlers
   const handleIngredientChange = (index, field, value) => {
     const newIngredients = [...form.ingredients];
     newIngredients[index][field] = value;
@@ -95,7 +94,6 @@ const AdminPanelMain = () => {
     setForm(prev => ({ ...prev, ingredients: newIngredients }));
   };
 
-  // Instructions handlers
   const handleInstructionChange = (index, value) => {
     const newInstructions = [...form.instructions];
     newInstructions[index] = value;
@@ -179,7 +177,10 @@ const AdminPanelMain = () => {
       await axios.delete(`/api/recipes/${id}`, config);
       setRecipes(recipes.filter(r => r._id !== id));
     } catch (err) {
-      alert('Ошибка при удалении рецепта');
+      const message = err.response && err.response.data && err.response.data.msg
+        ? err.response.data.msg
+        : 'Ошибка при удалении рецепта';
+      alert(message);
     }
   };
 

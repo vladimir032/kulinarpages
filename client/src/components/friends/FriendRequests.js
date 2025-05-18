@@ -6,7 +6,6 @@ const FriendRequests = ({ userId }) => {
   const [friendRequests, setFriendRequests] = useState([]);
 
   useEffect(() => {
-    // Загружаем все заявки в друзья
     axios.get(`/api/users/friend-requests/${userId}`)
       .then(response => {
         setFriendRequests(response.data);
@@ -19,7 +18,6 @@ const FriendRequests = ({ userId }) => {
   const acceptRequest = (targetUserId) => {
     axios.post('/api/users/friend/accept', { userId, targetUserId })
       .then(() => {
-        // Обновляем список после принятия заявки
         setFriendRequests(friendRequests.filter(request => request.userId !== targetUserId));
       })
       .catch(error => {
@@ -30,7 +28,7 @@ const FriendRequests = ({ userId }) => {
   const rejectRequest = (targetUserId) => {
     axios.post('/api/users/friend/reject', { userId, targetUserId })
       .then(() => {
-        // Обновляем список после отклонения заявки
+        // список при отклонении
         setFriendRequests(friendRequests.filter(request => request.userId !== targetUserId));
       })
       .catch(error => {
@@ -56,7 +54,7 @@ const FriendRequests = ({ userId }) => {
               sx={{ display: 'flex', alignItems: 'center', p: 2, borderRadius: 3, transition: 'transform 0.15s', '&:hover': { transform: 'scale(1.015)', boxShadow: 6 } }}
             >
               <Avatar
-                src={request.avatar || '/avatar.png'}
+                src={request.avatar ? (request.avatar.startsWith('http') ? request.avatar : `http://localhost:5000${request.avatar}`) : '/avatar.png'}
                 alt={request.username}
                 sx={{ width: 56, height: 56, mr: 2, bgcolor: 'blue.100', border: 2, borderColor: 'primary.light' }}
                 imgProps={{ onError: e => { e.target.onerror = null; e.target.src = '/avatar.png'; } }}
